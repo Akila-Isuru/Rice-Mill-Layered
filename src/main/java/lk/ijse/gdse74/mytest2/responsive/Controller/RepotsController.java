@@ -134,21 +134,21 @@ public class RepotsController implements Initializable {
         colReport_id.setCellValueFactory(new PropertyValueFactory<>("reportId"));
         colReport_type.setCellValueFactory(new PropertyValueFactory<>("reportType"));
         colOrderdate.setCellValueFactory(new PropertyValueFactory<>("reportDate"));
-         try {
-             ReportsModel reportsModel = new ReportsModel();
-             ArrayList<Reportsdto> reportsdtos = ReportsModel.viewAllReports();
-             if (reportsdtos != null) {
-                 ObservableList<Reportsdto> reportsdtoObservableList = FXCollections.observableArrayList(reportsdtos);
-                 table.setItems(reportsdtoObservableList);
+        try {
+            ReportsModel reportsModel = new ReportsModel();
+            ArrayList<Reportsdto> reportsdtos = ReportsModel.viewAllReports();
+            if (reportsdtos != null) {
+                ObservableList<Reportsdto> reportsdtoObservableList = FXCollections.observableArrayList(reportsdtos);
+                table.setItems(reportsdtoObservableList);
 
-             }else {
-                 Alert alert = new Alert(Alert.AlertType.ERROR);
-             }
+            }else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+            }
 
 
-         }catch (Exception e){
-             e.printStackTrace();
-         }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
     public void tableColumnOnClicked(MouseEvent mouseEvent) {

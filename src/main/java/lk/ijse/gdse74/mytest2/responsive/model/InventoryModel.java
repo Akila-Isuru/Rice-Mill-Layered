@@ -48,17 +48,17 @@ public class InventoryModel {
         );
     }
     public boolean deleteInventory(Inventorydto inventorydto) throws SQLException {
-           String sql = "delete from inventory where inventory_id = ?";
-           return CrudUtill.execute(sql, inventorydto.getId());
+        String sql = "delete from inventory where inventory_id = ?";
+        return CrudUtill.execute(sql, inventorydto.getId());
 
 
     }
     public boolean updateInventory(Inventorydto inventorydto) throws SQLException {
         return CrudUtill.execute(
                 "update inventory set product_id =?,curent_stock_bags =?, last_updated =? where inventory_id =?",
-                   inventorydto.getProductId(),
-                   inventorydto.getCurrentStockBags(),
-                   inventorydto.getLastUpdated(),
+                inventorydto.getProductId(),
+                inventorydto.getCurrentStockBags(),
+                inventorydto.getLastUpdated(),
                 inventorydto.getId()
         );
     }

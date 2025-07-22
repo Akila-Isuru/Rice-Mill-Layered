@@ -10,11 +10,11 @@ import lombok.*;
 @NoArgsConstructor
 
 public class cartTM {
-private String productId;
-private String productName;
-private int unitPrice;
-private int qty;
-private int total;
-private Button btnRemove;
+    private String productId;
+    private String productName;
+    private int unitPrice;
+    private int qty;
+    private int total;
+    private Button btnRemove;
 
 }

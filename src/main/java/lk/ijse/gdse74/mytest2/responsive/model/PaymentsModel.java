@@ -12,14 +12,14 @@ public class PaymentsModel{
         ResultSet rs = CrudUtill.execute("select * from payments");
         ArrayList<Paymentsdto> payments = new ArrayList<>();
         while (rs.next()) {
-           Paymentsdto payment = new Paymentsdto(
-                   rs.getString("payment_id"),
-                   rs.getString("order_id"),
-                   rs.getDate("payment_date"),
-                   rs.getString("payment_method"),
-                   rs.getInt("amount_paid")
-           );
-           payments.add(payment);
+            Paymentsdto payment = new Paymentsdto(
+                    rs.getString("payment_id"),
+                    rs.getString("order_id"),
+                    rs.getDate("payment_date"),
+                    rs.getString("payment_method"),
+                    rs.getInt("amount_paid")
+            );
+            payments.add(payment);
 
         }
         return payments;
@@ -53,10 +53,10 @@ public class PaymentsModel{
     }
     public boolean updatePayment(Paymentsdto paymentdto) throws SQLException, ClassNotFoundException {
         return CrudUtill.execute(
-          "update payments set order_id =?,payment_date= ?,payment_method =?,amount_paid =? where payment_id =?",
-          paymentdto.getOrderId(),
-          paymentdto.getPaymentDate(),
-          paymentdto.getPaymentMethods(),
+                "update payments set order_id =?,payment_date= ?,payment_method =?,amount_paid =? where payment_id =?",
+                paymentdto.getOrderId(),
+                paymentdto.getPaymentDate(),
+                paymentdto.getPaymentMethods(),
                 paymentdto.getAmountPaid(),
                 paymentdto.getPaymentId()
         );
@@ -64,15 +64,15 @@ public class PaymentsModel{
 
     public String getNextId() throws SQLException {
         ResultSet resultSet = CrudUtill.execute("select payment_id from payments order by payment_id desc limit 1");
-        String prefix = "PAY"; // Payment ID prefix
+        String prefix = "PAY";
         if (resultSet.next()) {
-            String lastId = resultSet.getString(1); // "PAY001"
-            String lastIdNumberString = lastId.substring(prefix.length()); // "001"
-            int lastIdNumber = Integer.parseInt(lastIdNumberString); // 1
-            int nextIdNumber = lastIdNumber + 1; // 2
+            String lastId = resultSet.getString(1);
+            String lastIdNumberString = lastId.substring(prefix.length());
+            int lastIdNumber = Integer.parseInt(lastIdNumberString);
+            int nextIdNumber = lastIdNumber + 1;
             String nextIdString = String.format(prefix + "%03d", nextIdNumber); // "PAY002"
             return nextIdString;
         }
-        return prefix + "001"; // Return PAY001 if no payments exist yet
+        return prefix + "001";
     }
 }

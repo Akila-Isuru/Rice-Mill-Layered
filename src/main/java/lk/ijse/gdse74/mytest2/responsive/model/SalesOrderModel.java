@@ -63,7 +63,7 @@ public class SalesOrderModel {
                 salesOrderdto.getOrderDate(),
                 salesOrderdto.getOrderAmount()
 
-                );
+        );
     }
     public boolean DeleteSalesOrder(SalesOrderdto salesOrderdto)throws ClassNotFoundException, SQLException {
         String sql = "delete from sales_order where order_id=?";
@@ -71,11 +71,11 @@ public class SalesOrderModel {
     }
     public boolean UpdateSalesOrder(SalesOrderdto salesOrderdto)throws ClassNotFoundException, SQLException {
         return CrudUtill.execute(
-          "update sales_order set customer_id = ?, order_date = ?, total_amount = ?, payment_status = ? where order_id =? ",
-          salesOrderdto.getCustomerId(),
-          salesOrderdto.getOrderDate(),
-          salesOrderdto.getOrderAmount(),
-          salesOrderdto.getOrderId()
+                "update sales_order set customer_id = ?, order_date = ?, total_amount = ?, payment_status = ? where order_id =? ",
+                salesOrderdto.getCustomerId(),
+                salesOrderdto.getOrderDate(),
+                salesOrderdto.getOrderAmount(),
+                salesOrderdto.getOrderId()
         );
     }
     public String getNextId() throws SQLException {

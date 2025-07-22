@@ -5,6 +5,10 @@ module lk.ijse.gdse74.mytest2.responsive {
     requires javafx.base;
     requires java.base;
     requires static lombok;
+    requires java.mail;
+    requires java.desktop;
+    requires mysql.connector.j;
+    requires com.google.protobuf;
 
     opens lk.ijse.gdse74.mytest2.responsive.Controller to javafx.fxml;
     opens lk.ijse.gdse74.mytest2.responsive.dto to javafx.fxml, javafx.base;

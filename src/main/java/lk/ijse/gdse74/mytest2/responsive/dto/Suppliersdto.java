@@ -9,11 +9,11 @@ import lombok.*;
 
 
 public class Suppliersdto {
-private  String supplierId;
-private  String name;
-private String contactNumber;
-private String address;
-private String email;
+    private  String supplierId;
+    private  String name;
+    private String contactNumber;
+    private String address;
+    private String email;
 
     public Suppliersdto(String id) {
         this.supplierId = id;

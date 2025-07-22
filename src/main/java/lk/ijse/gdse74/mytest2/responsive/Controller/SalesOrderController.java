@@ -121,7 +121,7 @@ public class SalesOrderController implements Initializable {
                 }
             }
 
-            // For new items
+
             if (cartQty > currentAvailableQty) {
                 new Alert(Alert.AlertType.WARNING,
                         "Not enough quantity! Available: " + currentAvailableQty).show();
@@ -156,7 +156,7 @@ public class SalesOrderController implements Initializable {
         }
     }
 
-    // Rest of your existing methods remain exactly the same
+
     @FXML void btnClearOnAction(ActionEvent event) { clearFields(); }
 
     @FXML void btnDeleteOnAction(ActionEvent event) {
@@ -173,7 +173,7 @@ public class SalesOrderController implements Initializable {
     }
 
     @FXML void btnSaveOnAction(ActionEvent event) {
-        // Your existing save implementation
+
     }
 
     private void clearFields() {
@@ -228,7 +228,7 @@ public class SalesOrderController implements Initializable {
 
     public void tableColumnOnClicked(MouseEvent mouseEvent) {}
 
-    
+
     public void btnOnActionPlaceOrder(ActionEvent actionEvent) {
         if (table.getItems().isEmpty()) {
             new Alert(Alert.AlertType.WARNING, "Please add items to cart").show();
@@ -244,7 +244,7 @@ public class SalesOrderController implements Initializable {
         String productId = cmbItemId.getValue();
 
         ArrayList<SalesOrderDetailsdto> cartList = new ArrayList<>();
-         int orderTotal = 0;
+        int orderTotal = 0;
 
         for(cartTM cartTM : cartData) {
 
@@ -262,7 +262,7 @@ public class SalesOrderController implements Initializable {
                 orderId,
                 selectedCustomerId,
                 date,
-               orderTotal,
+                orderTotal,
                 cartList
 
         );
