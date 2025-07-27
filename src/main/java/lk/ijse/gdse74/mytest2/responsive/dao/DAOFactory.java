@@ -1,7 +1,8 @@
 package lk.ijse.gdse74.mytest2.responsive.dao;
 
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.CustomerDAOImpl;
-import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.FarmerDAOImpl; // Import new FarmerDAOImpl
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.FarmerDAOImpl;
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.MachineMaintenanceDAOImpl; // Import new MachineMaintenanceDAOImpl
 
 public class DAOFactory {
     private static DAOFactory daoFactory;
@@ -17,7 +18,8 @@ public class DAOFactory {
     public <T extends SuperDAO> T getDAO(DAOTypes daoType) {
         return switch (daoType) {
             case CUSTOMER -> (T) new CustomerDAOImpl();
-            case FARMER -> (T) new FarmerDAOImpl(); // Added case for FARMER
+            case FARMER -> (T) new FarmerDAOImpl();
+            case MACHINE_MAINTENANCE -> (T) new MachineMaintenanceDAOImpl(); // Added case for MACHINE_MAINTENANCE
         };
     }
 }

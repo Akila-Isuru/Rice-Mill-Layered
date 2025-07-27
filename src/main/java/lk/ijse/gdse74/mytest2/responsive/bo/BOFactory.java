@@ -1,7 +1,8 @@
 package lk.ijse.gdse74.mytest2.responsive.bo;
 
 import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.CustomerBOImpl;
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.FarmerBOImpl; // Import new FarmerBOImpl
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.FarmerBOImpl;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.MachineMaintenanceBOImpl; // Import new MachineMaintenanceBOImpl
 
 public class BOFactory {
     private static BOFactory boFactory;
@@ -17,7 +18,8 @@ public class BOFactory {
     public <T extends SuperBO> T getBO(BOTypes boType) {
         return switch (boType) {
             case CUSTOMER -> (T) new CustomerBOImpl();
-            case FARMER -> (T) new FarmerBOImpl(); // Added case for FARMER
+            case FARMER -> (T) new FarmerBOImpl();
+            case MACHINE_MAINTENANCE -> (T) new MachineMaintenanceBOImpl(); // Added case for MACHINE_MAINTENANCE
         };
     }
 }
