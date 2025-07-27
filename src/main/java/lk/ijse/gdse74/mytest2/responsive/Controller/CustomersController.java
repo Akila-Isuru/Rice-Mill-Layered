@@ -1,6 +1,5 @@
 package lk.ijse.gdse74.mytest2.responsive.Controller;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -12,13 +11,17 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.CustomerBO;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
 import lk.ijse.gdse74.mytest2.responsive.dto.Customersdto;
-import lk.ijse.gdse74.mytest2.responsive.model.CustomerModel;
-import lombok.SneakyThrows;
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -42,22 +45,24 @@ public class CustomersController implements Initializable {
     @FXML private Label lblCustomerCount;
 
     private final String namePattern = "^[A-Za-z ]+$";
-    private final String nicPattern = "^[0-9]{9}[vVxX]||[0-9]{12}$";
     private final String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.lk$";
     private final String phonePattern = "^(?:0|\\+94|0094)?(?:07\\d{8})$";
 
     private ObservableList<Customersdto> customerMasterData = FXCollections.observableArrayList();
-    private final CustomerModel customerModel = new CustomerModel();
+    private final CustomerBO customerBO = BOFactory.getInstance().getBO(BOTypes.CUSTOMER);
 
-    @SneakyThrows
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         btnUpdate.setDisable(true);
         btnDelete.setDisable(true);
 
-        loadTableData();
-        loadNextId();
-        setupSearchFilter();
+        try {
+            loadTableData();
+            loadNextId();
+            setupSearchFilter();
+        } catch (Exception e) {
+            new Alert(Alert.AlertType.ERROR, "Failed to load data").show();
+        }
     }
 
     private void setupSearchFilter() {
@@ -71,18 +76,11 @@ public class CustomersController implements Initializable {
 
                 String lowerCaseFilter = newValue.toLowerCase();
 
-                if (customer.getCustomerId().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (customer.getName().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (customer.getContactNumber().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (customer.getAddress().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (customer.getEmail().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                }
-                return false;
+                return customer.getCustomerId().toLowerCase().contains(lowerCaseFilter) ||
+                        customer.getName().toLowerCase().contains(lowerCaseFilter) ||
+                        customer.getContactNumber().toLowerCase().contains(lowerCaseFilter) ||
+                        customer.getAddress().toLowerCase().contains(lowerCaseFilter) ||
+                        customer.getEmail().toLowerCase().contains(lowerCaseFilter);
             });
 
             SortedList<Customersdto> sortedData = new SortedList<>(filteredData);
@@ -96,22 +94,17 @@ public class CustomersController implements Initializable {
         lblCustomerCount.setText("Customers: " + table.getItems().size());
     }
 
-    private void loadTableData() throws Exception {
+    private void loadTableData() throws SQLException {
         colid.setCellValueFactory(new PropertyValueFactory<>("customerId"));
         colname.setCellValueFactory(new PropertyValueFactory<>("name"));
         coladdress.setCellValueFactory(new PropertyValueFactory<>("address"));
         colcontatcnumber.setCellValueFactory(new PropertyValueFactory<>("contactNumber"));
         colemail.setCellValueFactory(new PropertyValueFactory<>("email"));
 
-        try {
-            ArrayList<Customersdto> customers = customerModel.getAllCustomers();
-            customerMasterData = FXCollections.observableArrayList(customers);
-            table.setItems(customerMasterData);
-            updateCustomerCount();
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load customer data", ButtonType.OK).show();
-        }
+        List<Customersdto> customers = customerBO.getAllCustomers();
+        customerMasterData = FXCollections.observableArrayList(customers);
+        table.setItems(customerMasterData);
+        updateCustomerCount();
     }
 
     public void btnSaveOnAction(ActionEvent actionEvent) {
@@ -124,59 +117,27 @@ public class CustomersController implements Initializable {
         boolean isValidContact = contactNumber.matches(phonePattern);
         boolean isValidEmail = email.matches(emailPattern);
 
-        Customersdto customersdto = new Customersdto(txtId.getText(), txtName.getText(), txtContact_number.getText(), txtaddress.getText(), txtemail.getText());
         if (isValidName && isValidContact && isValidEmail) {
+            Customersdto customersdto = new Customersdto(
+                    txtId.getText(),
+                    name,
+                    contactNumber,
+                    address,
+                    email
+            );
+
             try {
-                boolean isSave = customerModel.saveCustomer(customersdto);
-                if (isSave) {
-                    new Alert(Alert.AlertType.INFORMATION, "Customer saved successfully").show();
-                    clearFields();
-                } else {
-                    new Alert(Alert.AlertType.INFORMATION, "Customer save Failed").show();
-                }
+                customerBO.saveCustomer(customersdto);
+                new Alert(Alert.AlertType.INFORMATION, "Customer saved successfully").show();
+                clearFields();
+            } catch (DuplicateException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Failed to save customer data").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to save customer").show();
             }
         } else {
-            new Alert(Alert.AlertType.WARNING, "Please fill in valid details for Name, Contact Number, and Email.").show();
-        }
-    }
-
-    private void clearFields() throws Exception {
-        try {
-            txtName.clear();
-            txtContact_number.clear();
-            txtaddress.clear();
-            txtemail.clear();
-            loadNextId();
-            Platform.runLater(() -> {
-                txtId.setText(txtId.getText());
-                System.out.println("UI refreshed with ID: " + txtId.getText());
-            });
-            loadTableData();
-            btnUpdate.setDisable(true);
-            btnDelete.setDisable(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error refreshing form").show();
-        }
-    }
-
-    private void loadNextId() throws SQLException {
-        try {
-            String nextId = customerModel.getNextId();
-            txtId.setText(nextId);
-            txtId.setEditable(false);
-            System.out.println("DEBUG: Next ID retrieved: " + nextId);
-            if (nextId == null || nextId.isEmpty()) {
-                System.out.println("DEBUG: Got empty or null ID");
-            }
-            txtId.setText(nextId);
-        } catch (SQLException e) {
-            System.err.println("ERROR in loadNextId: " + e.getMessage());
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error loading next ID").show();
+            new Alert(Alert.AlertType.WARNING, "Please fill in valid details").show();
         }
     }
 
@@ -197,22 +158,27 @@ public class CustomersController implements Initializable {
             boolean isValidContact = contactNumber.matches(phonePattern);
             boolean isValidEmail = email.matches(emailPattern);
 
-            Customersdto customersdto = new Customersdto(txtId.getText(), txtName.getText(), txtContact_number.getText(), txtaddress.getText(), txtemail.getText());
             if (isValidName && isValidContact && isValidEmail) {
+                Customersdto customersdto = new Customersdto(
+                        txtId.getText(),
+                        name,
+                        contactNumber,
+                        address,
+                        email
+                );
+
                 try {
-                    boolean isUpdate = customerModel.updateCustomer(customersdto);
-                    if (isUpdate) {
-                        new Alert(Alert.AlertType.INFORMATION, "Customer updated successfully").show();
-                        clearFields();
-                    } else {
-                        new Alert(Alert.AlertType.INFORMATION, "Customer update Failed").show();
-                    }
+                    customerBO.updateCustomer(customersdto);
+                    new Alert(Alert.AlertType.INFORMATION, "Customer updated successfully").show();
+                    clearFields();
+                } catch (NotFoundException | DuplicateException e) {
+                    new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    new Alert(Alert.AlertType.ERROR, "Failed to update customer data").show();
+                    new Alert(Alert.AlertType.ERROR, "Failed to update customer").show();
                 }
             } else {
-                new Alert(Alert.AlertType.WARNING, "Please fill in valid details for Name, Contact Number, and Email.").show();
+                new Alert(Alert.AlertType.WARNING, "Please fill in valid details").show();
             }
         }
     }
@@ -221,41 +187,60 @@ public class CustomersController implements Initializable {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmation Dialog");
         alert.setHeaderText("Delete Customer");
-        alert.setContentText("Are you sure you want to delete this customer? This action cannot be undone.");
+        alert.setContentText("Are you sure you want to delete this customer?");
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String id = txtId.getText();
             try {
-                boolean isDelete = customerModel.deleteCustomer(new Customersdto(id));
-                if (isDelete) {
+                boolean isDeleted = customerBO.deleteCustomer(id);
+                if (isDeleted) {
                     new Alert(Alert.AlertType.INFORMATION, "Customer deleted successfully").show();
                     clearFields();
                 } else {
-                    new Alert(Alert.AlertType.INFORMATION, "Customer delete Failed").show();
+                    new Alert(Alert.AlertType.ERROR, "Failed to delete customer").show();
                 }
+            } catch (InUseException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Failed to delete customer data").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to delete customer").show();
             }
         }
     }
 
     public void btnClearOnAction(ActionEvent actionEvent) throws Exception {
         clearFields();
+    }
+
+    private void clearFields() throws Exception {
+        txtName.clear();
+        txtContact_number.clear();
+        txtaddress.clear();
+        txtemail.clear();
+        loadNextId();
+        loadTableData();
         btnUpdate.setDisable(true);
         btnDelete.setDisable(true);
+        btnSave.setDisable(false);
+    }
+
+    private void loadNextId() throws SQLException {
+        String nextId = customerBO.getNextId();
+        txtId.setText(nextId);
+        txtId.setEditable(false);
     }
 
     public void tableColumnOnClicked(MouseEvent mouseEvent) {
         Customersdto customersdto = table.getSelectionModel().getSelectedItem();
-        btnSave.setDisable(true);
         if (customersdto != null) {
             txtId.setText(customersdto.getCustomerId());
             txtName.setText(customersdto.getName());
             txtContact_number.setText(customersdto.getContactNumber());
             txtaddress.setText(customersdto.getAddress());
             txtemail.setText(customersdto.getEmail());
+
+            btnSave.setDisable(true);
             btnUpdate.setDisable(false);
             btnDelete.setDisable(false);
         }
