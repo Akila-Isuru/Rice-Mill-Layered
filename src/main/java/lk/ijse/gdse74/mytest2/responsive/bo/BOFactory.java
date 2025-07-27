@@ -3,7 +3,8 @@ package lk.ijse.gdse74.mytest2.responsive.bo;
 import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.CustomerBOImpl;
 import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.FarmerBOImpl;
 import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.MachineMaintenanceBOImpl;
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.SupplierBOImpl; // Import new SupplierBOImpl
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.MillingProcessBOImpl; // Import new MillingProcessBOImpl
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.SupplierBOImpl;
 
 public class BOFactory {
     private static BOFactory boFactory;
@@ -21,7 +22,8 @@ public class BOFactory {
             case CUSTOMER -> (T) new CustomerBOImpl();
             case FARMER -> (T) new FarmerBOImpl();
             case MACHINE_MAINTENANCE -> (T) new MachineMaintenanceBOImpl();
-            case SUPPLIER -> (T) new SupplierBOImpl(); // Added case for SUPPLIER
+            case SUPPLIER -> (T) new SupplierBOImpl();
+            case MILLING_PROCESS -> (T) new MillingProcessBOImpl(); // Added case for MILLING_PROCESS
         };
     }
 }

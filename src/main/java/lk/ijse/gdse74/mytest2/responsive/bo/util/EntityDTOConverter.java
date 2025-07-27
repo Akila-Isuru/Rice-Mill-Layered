@@ -3,11 +3,13 @@ package lk.ijse.gdse74.mytest2.responsive.bo.util;
 import lk.ijse.gdse74.mytest2.responsive.dto.Customersdto;
 import lk.ijse.gdse74.mytest2.responsive.dto.FarmerDTO;
 import lk.ijse.gdse74.mytest2.responsive.dto.MachineMaintenancedto;
-import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto; // Import Suppliersdto
+import lk.ijse.gdse74.mytest2.responsive.dto.MillingProcessdto; // Import MillingProcessdto
+import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto;
 import lk.ijse.gdse74.mytest2.responsive.entity.Customer;
 import lk.ijse.gdse74.mytest2.responsive.entity.Farmer;
 import lk.ijse.gdse74.mytest2.responsive.entity.MachineMaintenance;
-import lk.ijse.gdse74.mytest2.responsive.entity.Supplier; // Import Supplier entity
+import lk.ijse.gdse74.mytest2.responsive.entity.MillingProcess; // Import MillingProcess entity
+import lk.ijse.gdse74.mytest2.responsive.entity.Supplier;
 
 public class EntityDTOConverter {
 
@@ -69,8 +71,6 @@ public class EntityDTOConverter {
         );
     }
 
-    // --- New methods for Supplier ---
-
     public Suppliersdto getSuppliersdto(Supplier supplier) {
         return new Suppliersdto(
                 supplier.getSupplierId(),
@@ -88,6 +88,36 @@ public class EntityDTOConverter {
                 dto.getContactNumber(),
                 dto.getAddress(),
                 dto.getEmail()
+        );
+    }
+
+    // --- New methods for MillingProcess ---
+
+    public MillingProcessdto getMillingProcessdto(MillingProcess process) {
+        // Mapping entity fields (husk_kg, bran_kg) to DTO fields (husk, bran)
+        return new MillingProcessdto(
+                process.getMillingId(),
+                process.getPaddyId(),
+                process.getStartTime(),
+                process.getEndTime(),
+                process.getMilledQuantity(),
+                process.getBrokenRice(),
+                process.getHusk_kg(), // Entity field husk_kg maps to DTO husk
+                process.getBran_kg()  // Entity field bran_kg maps to DTO bran
+        );
+    }
+
+    public MillingProcess getMillingProcess(MillingProcessdto dto) {
+        // Mapping DTO fields (husk, bran) to entity fields (husk_kg, bran_kg)
+        return new MillingProcess(
+                dto.getMillingId(),
+                dto.getPaddyId(),
+                dto.getStartTime(),
+                dto.getEndTime(),
+                dto.getMilledQuantity(),
+                dto.getBrokenRice(),
+                dto.getHusk(), // DTO field husk maps to Entity husk_kg
+                dto.getBran()  // DTO field bran maps to Entity bran_kg
         );
     }
 }

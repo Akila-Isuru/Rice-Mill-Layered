@@ -1,7 +1,7 @@
 package lk.ijse.gdse74.mytest2.responsive.model;
 
 import lk.ijse.gdse74.mytest2.responsive.dto.Inventorydto;
-import lk.ijse.gdse74.mytest2.responsive.dto.SalesOrderDetailsdto;
+// import lk.ijse.gdse74.mytest2.responsive.dto.SalesOrderDetailsdto; // Not used here, can remove if not used elsewhere in this model
 import lk.ijse.gdse74.mytest2.responsive.utill.CrudUtill;
 
 import java.sql.ResultSet;
@@ -24,6 +24,8 @@ public class InventoryModel {
         return inventory;
     }
 
+    // REMOVE THIS METHOD: It's better to get product IDs from FinishedProductModel
+    /*
     public static ArrayList<String> getAllproductIds() throws SQLException {
         ResultSet rst = CrudUtill.execute(
                 "select product_id from inventory ");
@@ -36,6 +38,7 @@ public class InventoryModel {
         return list;
 
     }
+    */
 
     public boolean saveInventory(Inventorydto inventorydto) throws SQLException {
         return CrudUtill.execute(

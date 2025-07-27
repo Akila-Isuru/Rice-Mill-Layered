@@ -4,5 +4,6 @@ public enum DAOTypes {
     CUSTOMER,
     FARMER,
     MACHINE_MAINTENANCE,
-    SUPPLIER // Added SUPPLIER
+    SUPPLIER,
+    MILLING_PROCESS // Added MILLING_PROCESS
 }
