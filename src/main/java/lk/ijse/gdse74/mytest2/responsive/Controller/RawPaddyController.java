@@ -10,7 +10,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import lk.ijse.gdse74.mytest2.responsive.dto.RawPaddydto;
 import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto;
-import lk.ijse.gdse74.mytest2.responsive.dto.Farmersdto;
+import lk.ijse.gdse74.mytest2.responsive.dto.FarmerDTO;
 import lk.ijse.gdse74.mytest2.responsive.model.RawPaddyModel;
 import lk.ijse.gdse74.mytest2.responsive.model.SuppliersModel;
 import lk.ijse.gdse74.mytest2.responsive.model.FarmersModel;
@@ -97,10 +97,10 @@ public class RawPaddyController implements Initializable {
 
     private void loadFarmerIds() {
         try {
-            ArrayList<Farmersdto> allFarmers = new FarmersModel().viewAllFarmers();
+            ArrayList<FarmerDTO> allFarmers = new FarmersModel().viewAllFarmers();
             ObservableList<String> farmerIds = FXCollections.observableArrayList();
 
-            for (Farmersdto farmer : allFarmers) {
+            for (FarmerDTO farmer : allFarmers) {
                 if (!farmerIds.contains(farmer.getFarmerId())) {
                     farmerIds.add(farmer.getFarmerId());
                 }
