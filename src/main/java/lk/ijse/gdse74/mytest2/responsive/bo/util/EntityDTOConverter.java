@@ -2,10 +2,12 @@ package lk.ijse.gdse74.mytest2.responsive.bo.util;
 
 import lk.ijse.gdse74.mytest2.responsive.dto.Customersdto;
 import lk.ijse.gdse74.mytest2.responsive.dto.FarmerDTO;
-import lk.ijse.gdse74.mytest2.responsive.dto.MachineMaintenancedto; // Import MachineMaintenancedto
+import lk.ijse.gdse74.mytest2.responsive.dto.MachineMaintenancedto;
+import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto; // Import Suppliersdto
 import lk.ijse.gdse74.mytest2.responsive.entity.Customer;
 import lk.ijse.gdse74.mytest2.responsive.entity.Farmer;
-import lk.ijse.gdse74.mytest2.responsive.entity.MachineMaintenance; // Import MachineMaintenance entity
+import lk.ijse.gdse74.mytest2.responsive.entity.MachineMaintenance;
+import lk.ijse.gdse74.mytest2.responsive.entity.Supplier; // Import Supplier entity
 
 public class EntityDTOConverter {
 
@@ -47,8 +49,6 @@ public class EntityDTOConverter {
         );
     }
 
-    // --- New methods for MachineMaintenance ---
-
     public MachineMaintenancedto getMachineMaintenancedto(MachineMaintenance maintenance) {
         return new MachineMaintenancedto(
                 maintenance.getMaintenanceId(),
@@ -66,6 +66,28 @@ public class EntityDTOConverter {
                 dto.getMaintenanceDate(),
                 dto.getDescription(),
                 dto.getCost()
+        );
+    }
+
+    // --- New methods for Supplier ---
+
+    public Suppliersdto getSuppliersdto(Supplier supplier) {
+        return new Suppliersdto(
+                supplier.getSupplierId(),
+                supplier.getName(),
+                supplier.getContactNumber(),
+                supplier.getAddress(),
+                supplier.getEmail()
+        );
+    }
+
+    public Supplier getSupplier(Suppliersdto dto) {
+        return new Supplier(
+                dto.getSupplierId(),
+                dto.getName(),
+                dto.getContactNumber(),
+                dto.getAddress(),
+                dto.getEmail()
         );
     }
 }
