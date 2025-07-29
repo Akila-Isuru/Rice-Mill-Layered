@@ -1,8 +1,8 @@
 package lk.ijse.gdse74.mytest2.responsive.dao.custom.impl;
 
 import lk.ijse.gdse74.mytest2.responsive.dao.SQLUtill;
-import lk.ijse.gdse74.mytest2.responsive.dao.custom.SupplierDAO; // Corrected import
-import lk.ijse.gdse74.mytest2.responsive.entity.Supplier; // Import the new entity
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.SupplierDAO;
+import lk.ijse.gdse74.mytest2.responsive.entity.Supplier;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -17,14 +17,13 @@ public class SupplierDAOImpl implements SupplierDAO {
         ResultSet rs = SQLUtill.execute("SELECT * FROM suppliers");
         List<Supplier> suppliers = new ArrayList<>();
         while (rs.next()) {
-            Supplier supplier = new Supplier(
+            suppliers.add(new Supplier(
                     rs.getString("supplier_id"),
                     rs.getString("name"),
-                    rs.getString("cotact_number"), // Use database column name
+                    rs.getString("cotact_number"), // Corrected to cotact_number
                     rs.getString("address"),
                     rs.getString("email")
-            );
-            suppliers.add(supplier);
+            ));
         }
         return suppliers;
     }
@@ -35,7 +34,11 @@ public class SupplierDAOImpl implements SupplierDAO {
         char tableChar = 'S';
         if (resultSet.next()) {
             String lastId = resultSet.getString(1);
-            String lastIdNumberString = lastId.substring(1);
+            // Handle cases like "S1", "S01", "S001" for parsing
+            String lastIdNumberString = lastId.replaceAll("[^\\d]", ""); // Extract only digits
+            if (lastIdNumberString.isEmpty()) {
+                return tableChar + "001"; // Fallback if no numbers found
+            }
             int lastIdNumber = Integer.parseInt(lastIdNumberString);
             int nextIdNumber = lastIdNumber + 1;
             return String.format(tableChar + "%03d", nextIdNumber);
@@ -43,87 +46,68 @@ public class SupplierDAOImpl implements SupplierDAO {
         return tableChar + "001";
     }
 
+
     @Override
-    public boolean save(Supplier supplier) throws SQLException {
+    public boolean save(Supplier entity) throws SQLException {
         return SQLUtill.execute(
                 "INSERT INTO suppliers (supplier_id, name, cotact_number, address, email) VALUES (?,?,?,?,?)",
-                supplier.getSupplierId(),
-                supplier.getName(),
-                supplier.getContactNumber(), // Use DTO field name, but maps to 'cotact_number' column
-                supplier.getAddress(),
-                supplier.getEmail()
+                entity.getSupplierId(),
+                entity.getName(),
+                entity.getCotactNumber(), // Corrected to getCotactNumber
+                entity.getAddress(),
+                entity.getEmail()
         );
     }
 
     @Override
-    public boolean update(Supplier supplier) throws SQLException {
+    public boolean update(Supplier entity) throws SQLException {
         return SQLUtill.execute(
                 "UPDATE suppliers SET name=?, cotact_number=?, address=?, email=? WHERE supplier_id=?",
-                supplier.getName(),
-                supplier.getContactNumber(), // Use DTO field name, but maps to 'cotact_number' column
-                supplier.getAddress(),
-                supplier.getEmail(),
-                supplier.getSupplierId()
+                entity.getName(),
+                entity.getCotactNumber(), // Corrected to getCotactNumber
+                entity.getAddress(),
+                entity.getEmail(),
+                entity.getSupplierId()
         );
     }
 
     @Override
     public boolean delete(String id) throws SQLException {
-        return SQLUtill.execute("DELETE FROM suppliers WHERE supplier_id=?", id);
+        String sql = "DELETE FROM suppliers WHERE supplier_id=?";
+        return SQLUtill.execute(sql, id);
     }
 
     @Override
     public List<String> getAllIds() throws SQLException {
-        ResultSet resultSet = SQLUtill.execute("SELECT supplier_id FROM suppliers");
         List<String> ids = new ArrayList<>();
-        while (resultSet.next()) {
-            ids.add(resultSet.getString(1));
+        ResultSet rs = SQLUtill.execute("SELECT supplier_id FROM suppliers");
+        while(rs.next()){
+            ids.add(rs.getString("supplier_id"));
         }
         return ids;
     }
 
     @Override
     public Optional<Supplier> findById(String id) throws SQLException {
-        ResultSet resultSet = SQLUtill.execute("SELECT * FROM suppliers WHERE supplier_id = ?", id);
-        if (resultSet.next()) {
+        ResultSet rs = SQLUtill.execute("SELECT * FROM suppliers WHERE supplier_id = ?", id);
+        if (rs.next()) {
             return Optional.of(new Supplier(
-                    resultSet.getString("supplier_id"),
-                    resultSet.getString("name"),
-                    resultSet.getString("cotact_number"),
-                    resultSet.getString("address"),
-                    resultSet.getString("email")
+                    rs.getString("supplier_id"),
+                    rs.getString("name"),
+                    rs.getString("cotact_number"), // Corrected to cotact_number
+                    rs.getString("address"),
+                    rs.getString("email")
             ));
         }
         return Optional.empty();
     }
 
     @Override
-    public Optional<Supplier> findSupplierByContactNumber(String contactNumber) throws SQLException {
-        ResultSet resultSet = SQLUtill.execute("SELECT * FROM suppliers WHERE cotact_number = ?", contactNumber);
-        if (resultSet.next()) {
-            return Optional.of(new Supplier(
-                    resultSet.getString("supplier_id"),
-                    resultSet.getString("name"),
-                    resultSet.getString("cotact_number"),
-                    resultSet.getString("address"),
-                    resultSet.getString("email")
-            ));
+    public int getSupplierCount() throws SQLException {
+        ResultSet rs = SQLUtill.execute("SELECT COUNT(*) FROM suppliers");
+        if (rs.next()) {
+            return rs.getInt(1);
         }
-        return Optional.empty();
-    }
-
-    @Override
-    public Optional<Supplier> findSupplierByEmail(String email) throws SQLException {
-        ResultSet resultSet = SQLUtill.execute("SELECT * FROM suppliers WHERE email = ?", email);
-        if (resultSet.next()) {
-            return Optional.of(new Supplier(
-                    resultSet.getString("supplier_id"),
-                    resultSet.getString("name"),
-                    resultSet.getString("cotact_number"),
-                    resultSet.getString("address"),
-                    resultSet.getString("email")
-            ));
-        }
-        return Optional.empty();
+        return 0;
     }
 }

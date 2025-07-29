@@ -18,4 +18,9 @@ public class Suppliersdto {
     public Suppliersdto(String id) {
         this.supplierId = id;
     }
+
+    public String getCotactNumber() {
+        this.contactNumber = contactNumber;
+        return contactNumber;
+    }
 }

@@ -1,15 +1,15 @@
 package lk.ijse.gdse74.mytest2.responsive.bo.custom.impl;
 
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.SupplierBO; // Corrected import
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.SupplierBO;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
 import lk.ijse.gdse74.mytest2.responsive.bo.util.EntityDTOConverter;
 import lk.ijse.gdse74.mytest2.responsive.dao.DAOFactory;
 import lk.ijse.gdse74.mytest2.responsive.dao.DAOTypes;
-import lk.ijse.gdse74.mytest2.responsive.dao.custom.SupplierDAO; // Corrected import
-import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto; // Using the existing DTO name
-import lk.ijse.gdse74.mytest2.responsive.entity.Supplier; // Import the new entity
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.SupplierDAO;
+import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto;
+import lk.ijse.gdse74.mytest2.responsive.entity.Supplier;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,90 +18,73 @@ import java.util.Optional;
 
 public class SupplierBOImpl implements SupplierBO {
 
-    private final SupplierDAO supplierDAO = DAOFactory.getInstance().getDAO(DAOTypes.SUPPLIER); // Use correct DAO type
+    private final SupplierDAO supplierDAO = DAOFactory.getInstance().getDAO(DAOTypes.SUPPLIER);
     private final EntityDTOConverter converter = new EntityDTOConverter();
 
     @Override
     public List<Suppliersdto> getAllSuppliers() throws SQLException {
-        List<Supplier> suppliers = supplierDAO.getAll();
-        List<Suppliersdto> supplierDTOS = new ArrayList<>();
-        for (Supplier supplier : suppliers) {
-            supplierDTOS.add(converter.getSuppliersdto(supplier)); // Use converter
+        List<Supplier> entities = supplierDAO.getAll();
+        List<Suppliersdto> dtoList = new ArrayList<>();
+        for (Supplier entity : entities) {
+            dtoList.add(converter.getSuppliersdto(entity));
         }
-        return supplierDTOS;
+        return dtoList;
     }
 
     @Override
     public void saveSupplier(Suppliersdto dto) throws DuplicateException, Exception {
-        // Check for duplicate ID
-        Optional<Supplier> optionalSupplier = supplierDAO.findById(dto.getSupplierId());
-        if (optionalSupplier.isPresent()) {
-            throw new DuplicateException("Duplicate supplier ID");
+        Optional<Supplier> existing = supplierDAO.findById(dto.getSupplierId());
+        if (existing.isPresent()) {
+            throw new DuplicateException("Supplier with ID " + dto.getSupplierId() + " already exists.");
         }
-
-        // Check for duplicate contact number
-        Optional<Supplier> supplierByContactOptional = supplierDAO.findSupplierByContactNumber(dto.getContactNumber());
-        if (supplierByContactOptional.isPresent()) {
-            throw new DuplicateException("Duplicate supplier contact number");
+        Supplier entity = converter.getSupplier(dto);
+        boolean saved = supplierDAO.save(entity);
+        if (!saved) {
+            throw new Exception("Failed to save supplier.");
         }
-
-        // Check for duplicate email
-        Optional<Supplier> supplierByEmailOptional = supplierDAO.findSupplierByEmail(dto.getEmail());
-        if (supplierByEmailOptional.isPresent()) {
-            throw new DuplicateException("Duplicate supplier email");
-        }
-
-        Supplier supplier = converter.getSupplier(dto); // Use converter
-        supplierDAO.save(supplier);
     }
 
     @Override
-    public void updateSupplier(Suppliersdto dto) throws SQLException, DuplicateException {
-        Optional<Supplier> optionalSupplier = supplierDAO.findById(dto.getSupplierId());
-        if (optionalSupplier.isEmpty()) {
-            throw new NotFoundException("Supplier not found");
+    public void updateSupplier(Suppliersdto dto) throws NotFoundException, Exception {
+        Optional<Supplier> existing = supplierDAO.findById(dto.getSupplierId());
+        if (existing.isEmpty()) {
+            throw new NotFoundException("Supplier with ID " + dto.getSupplierId() + " not found for update.");
         }
-
-        // Check for duplicate contact number (excluding current supplier)
-        Optional<Supplier> supplierByContactOptional = supplierDAO.findSupplierByContactNumber(dto.getContactNumber());
-        if (supplierByContactOptional.isPresent()) {
-            Supplier existingSupplier = supplierByContactOptional.get();
-            if (!existingSupplier.getSupplierId().equals(dto.getSupplierId())) {
-                throw new DuplicateException("Duplicate contact number");
-            }
+        Supplier entity = converter.getSupplier(dto);
+        boolean updated = supplierDAO.update(entity);
+        if (!updated) {
+            throw new Exception("Failed to update supplier.");
         }
-
-        // Check for duplicate email (excluding current supplier)
-        Optional<Supplier> supplierByEmailOptional = supplierDAO.findSupplierByEmail(dto.getEmail());
-        if (supplierByEmailOptional.isPresent()) {
-            Supplier existingSupplier = supplierByEmailOptional.get();
-            if (!existingSupplier.getSupplierId().equals(dto.getSupplierId())) {
-                throw new DuplicateException("Duplicate email");
-            }
-        }
-
-        Supplier supplier = converter.getSupplier(dto); // Use converter
-        supplierDAO.update(supplier);
     }
 
     @Override
-    public boolean deleteSupplier(String id) throws InUseException, Exception {
-        Optional<Supplier> optionalSupplier = supplierDAO.findById(id);
-        if (optionalSupplier.isEmpty()) {
-            throw new NotFoundException("Supplier not found..!");
+    public boolean deleteSupplier(String id) throws InUseException, NotFoundException, Exception {
+        Optional<Supplier> existing = supplierDAO.findById(id);
+        if (existing.isEmpty()) {
+            throw new NotFoundException("Supplier with ID " + id + " not found for deletion.");
         }
         try {
             return supplierDAO.delete(id);
         } catch (SQLException e) {
-            // Check SQL error codes for foreign key constraints if possible for more specific error
-            throw new InUseException("Cannot delete supplier, it is currently in use or associated with other data.");
-        } catch (Exception e) {
-            throw new Exception("Error deleting supplier: " + e.getMessage());
+            if (e.getSQLState().startsWith("23")) {
+                throw new InUseException("Cannot delete supplier with ID " + id + "; it is linked to other records (e.g., raw paddy purchases).");
+            }
+            throw new Exception("Error deleting supplier: " + e.getMessage(), e);
         }
     }
 
     @Override
     public String getNextId() throws SQLException {
         return supplierDAO.getNextId();
+    }
+
+    @Override
+    public List<String> getAllSupplierIds() throws SQLException {
+        return supplierDAO.getAllIds();
+    }
+
+    @Override
+    public int getSupplierCount() throws Exception {
+        return supplierDAO.getSupplierCount();
     }
 }

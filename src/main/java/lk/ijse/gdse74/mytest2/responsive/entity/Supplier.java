@@ -7,10 +7,10 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class Supplier { // This is the new entity class
+public class Supplier {
     private String supplierId;
     private String name;
-    private String contactNumber; // Note: Database column is 'cotact_number'
+    private String cotactNumber; // Changed to cotactNumber to match your DB column 'cotact_number'
     private String address;
     private String email;
 }
