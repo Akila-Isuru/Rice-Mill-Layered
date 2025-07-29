@@ -8,12 +8,17 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
-import lk.ijse.gdse74.mytest2.responsive.dto.MachineMaintenancedto;
-import lk.ijse.gdse74.mytest2.responsive.model.MachineMaintenanceModel;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.MachineMaintenanceBO; // Corrected import
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
+import lk.ijse.gdse74.mytest2.responsive.dto.MachineMaintenancedto; // Using the existing DTO name
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.List; // Use List instead of ArrayList
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -35,15 +40,20 @@ public class MachineMaintenanceController implements Initializable {
     @FXML private TextField txtmain_date;
     @FXML private TextField txtmain_id;
 
+    // Use BOFactory to get BO instance
+    private final MachineMaintenanceBO machineMaintenanceBO = BOFactory.getInstance().getBO(BOTypes.MACHINE_MAINTENANCE);
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellValueFactories();
         loadTable();
-        disableButtons();
-        loadNextId();
-        setupFieldListeners();
+        // The original disableButtons() would re-enable them.
+        // We want them disabled on init if no item is selected for update/delete.
         btnUpdate.setDisable(true);
         btnDelete.setDisable(true);
+        btnSave.setDisable(false); // Enable save initially
+        loadNextId();
+        setupFieldListeners();
     }
 
     private void setCellValueFactories() {
@@ -56,34 +66,11 @@ public class MachineMaintenanceController implements Initializable {
 
     private void loadTable() {
         try {
-            ArrayList<MachineMaintenancedto> allMaintenance = MachineMaintenanceModel.viewAllMachineMaintenance();
+            List<MachineMaintenancedto> allMaintenance = machineMaintenanceBO.getAllMachineMaintenance(); // Use BO
             table.setItems(FXCollections.observableArrayList(allMaintenance));
-        } catch (Exception e) {
+        } catch (SQLException e) { // Catch SQLException from BO layer
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load data").show();
-        }
-    }
-
-    private void disableButtons() {
-        btnUpdate.setDisable(false);
-        btnDelete.setDisable(false);
-        btnSave.setDisable(false);
-    }
-
-    private void enableButtons() {
-        btnUpdate.setDisable(false);
-        btnDelete.setDisable(false);
-        btnSave.setDisable(true);
-    }
-
-    private void loadNextId() {
-        try {
-            String nextId = new MachineMaintenanceModel().getNextId();
-            txtmain_id.setText(nextId);
-            txtmain_id.setDisable(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to generate next ID").show();
+            new Alert(Alert.AlertType.ERROR, "Failed to load data: " + e.getMessage()).show();
         }
     }
 
@@ -101,10 +88,35 @@ public class MachineMaintenanceController implements Initializable {
                 txtdescription.getText().isEmpty() ||
                 txtcost.getText().isEmpty();
 
+        // Only affect save button if an item is NOT selected for update/delete
+        if (table.getSelectionModel().getSelectedItem() == null) {
+            btnSave.setDisable(anyFieldEmpty);
+        }
+    }
 
-        if (btnSave.isDisabled()) return;
+    private void loadNextId() {
+        try {
+            String nextId = machineMaintenanceBO.getNextId(); // Use BO
+            txtmain_id.setText(nextId);
+            txtmain_id.setDisable(true); // Keep it disabled as it's auto-generated
+        } catch (SQLException e) { // Catch SQLException from BO layer
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Failed to generate next ID: " + e.getMessage()).show();
+        }
+    }
 
-        btnSave.setDisable(anyFieldEmpty);
+    private void clearFields() {
+        txtmachine_name.clear();
+        txtmain_date.clear();
+        txtdescription.clear();
+        txtcost.clear();
+
+        loadNextId(); // Generate new ID
+        loadTable(); // Refresh table
+        btnUpdate.setDisable(true); // After clear, disable update/delete
+        btnDelete.setDisable(true);
+        btnSave.setDisable(false); // Enable save
+        table.getSelectionModel().clearSelection(); // Clear table selection
     }
 
     @FXML
@@ -122,19 +134,18 @@ public class MachineMaintenanceController implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                boolean isDeleted = new MachineMaintenanceModel().deleteMachineMaintenance(
-                        new MachineMaintenancedto(txtmain_id.getText())
-                );
+                boolean isDeleted = machineMaintenanceBO.deleteMachineMaintenance(txtmain_id.getText()); // Use BO
 
                 if (isDeleted) {
                     new Alert(Alert.AlertType.INFORMATION, "Deleted Successfully!").show();
                     clearFields();
-                    loadTable();
                 } else {
                     new Alert(Alert.AlertType.ERROR, "Delete Failed!").show();
                 }
-            } catch (Exception e) {
-                new Alert(Alert.AlertType.ERROR, "Something went wrong!").show();
+            } catch (NotFoundException | InUseException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+            } catch (Exception e) { // Catch generic exceptions from BO
+                new Alert(Alert.AlertType.ERROR, "Something went wrong during delete: " + e.getMessage()).show();
                 e.printStackTrace();
             }
         }
@@ -157,19 +168,16 @@ public class MachineMaintenanceController implements Initializable {
                     cost
             );
 
-            boolean isSaved = new MachineMaintenanceModel().saveMachineMaintenance(dto);
+            machineMaintenanceBO.saveMachineMaintenance(dto); // Use BO
 
-            if (isSaved) {
-                new Alert(Alert.AlertType.INFORMATION, "Saved Successfully!").show();
-                clearFields();
-                loadTable();
-            } else {
-                new Alert(Alert.AlertType.ERROR, "Save Failed!").show();
-            }
+            new Alert(Alert.AlertType.INFORMATION, "Saved Successfully!").show();
+            clearFields();
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.ERROR, "Invalid cost value").show();
-        } catch (Exception e) {
-            new Alert(Alert.AlertType.ERROR, "Something went wrong!").show();
+            new Alert(Alert.AlertType.ERROR, "Invalid cost value. Please enter a number.").show();
+        } catch (DuplicateException e) { // Catch duplicate exception from BO
+            new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+        } catch (Exception e) { // Catch generic exceptions from BO
+            new Alert(Alert.AlertType.ERROR, "Something went wrong during save: " + e.getMessage()).show();
             e.printStackTrace();
         }
     }
@@ -198,19 +206,16 @@ public class MachineMaintenanceController implements Initializable {
                         cost
                 );
 
-                boolean isUpdated = new MachineMaintenanceModel().updateMachineMaintenance(dto);
+                machineMaintenanceBO.updateMachineMaintenance(dto); // Use BO
 
-                if (isUpdated) {
-                    new Alert(Alert.AlertType.INFORMATION, "Updated Successfully!").show();
-                    clearFields();
-                    loadTable();
-                } else {
-                    new Alert(Alert.AlertType.ERROR, "Update Failed!").show();
-                }
+                new Alert(Alert.AlertType.INFORMATION, "Updated Successfully!").show();
+                clearFields();
             } catch (NumberFormatException e) {
-                new Alert(Alert.AlertType.ERROR, "Invalid cost value").show();
-            } catch (Exception e) {
-                new Alert(Alert.AlertType.ERROR, "Something went wrong!").show();
+                new Alert(Alert.AlertType.ERROR, "Invalid cost value. Please enter a number.").show();
+            } catch (NotFoundException e) { // Catch NotFounException from BO
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+            } catch (Exception e) { // Catch generic exceptions from BO
+                new Alert(Alert.AlertType.ERROR, "Something went wrong during update: " + e.getMessage()).show();
                 e.printStackTrace();
             }
         }
@@ -226,7 +231,9 @@ public class MachineMaintenanceController implements Initializable {
             txtdescription.setText(selectedItem.getDescription());
             txtcost.setText(String.valueOf(selectedItem.getCost()));
 
-            enableButtons();
+            btnSave.setDisable(true); // Disable save when an item is selected
+            btnUpdate.setDisable(false); // Enable update
+            btnDelete.setDisable(false); // Enable delete
         }
     }
 
@@ -245,16 +252,5 @@ public class MachineMaintenanceController implements Initializable {
         }
 
         return true;
-    }
-
-    private void clearFields() {
-        txtmachine_name.clear();
-        txtmain_date.clear();
-        txtdescription.clear();
-        txtcost.clear();
-
-        loadNextId();
-        loadTable();
-        disableButtons();
     }
 }

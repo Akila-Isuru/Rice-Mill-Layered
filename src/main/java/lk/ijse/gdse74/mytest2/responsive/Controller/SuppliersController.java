@@ -1,6 +1,5 @@
 package lk.ijse.gdse74.mytest2.responsive.Controller;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -12,12 +11,17 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto;
-import lk.ijse.gdse74.mytest2.responsive.model.SuppliersModel;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.SupplierBO; // Corrected import
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
+import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto; // Using the existing DTO name
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -40,21 +44,22 @@ public class SuppliersController implements Initializable {
     @FXML private TextField txtSearch;
     @FXML private Label lblSupplierCount;
 
-
     private final String namePattern = "^[A-Za-z ]+$";
     private final String emailPattern = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
-    private final String phonePattern = "^0\\d{9}$";
+    private final String phonePattern = "^0\\d{9}$"; // Matches 0xxxxxxxxx (10 digits starting with 0)
 
     private ObservableList<Suppliersdto> supplierMasterData = FXCollections.observableArrayList();
+    private final SupplierBO supplierBO = BOFactory.getInstance().getBO(BOTypes.SUPPLIER); // Use BOFactory
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         try {
             loadTable();
-            disableButtons(true);
+            disableButtons(true); // Initially disable update/delete
             loadNextId();
             setupSearchFilter();
         } catch (SQLException e) {
+            new Alert(Alert.AlertType.ERROR, "Initialization Error: " + e.getMessage()).show();
             throw new RuntimeException(e);
         }
     }
@@ -67,12 +72,13 @@ public class SuppliersController implements Initializable {
         colemail.setCellValueFactory(new PropertyValueFactory<>("email"));
 
         try {
-            ArrayList<Suppliersdto> suppliersdtos = SuppliersModel.viewAllSuppliers();
+            List<Suppliersdto> suppliersdtos = supplierBO.getAllSuppliers(); // Use BO
             supplierMasterData = FXCollections.observableArrayList(suppliersdtos);
             tSuppliersTable.setItems(supplierMasterData);
             updateSupplierCount();
-        } catch (Exception e) {
+        } catch (SQLException e) { // Catch SQLException from BO layer
             e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Failed to load supplier data: " + e.getMessage()).show();
         }
     }
 
@@ -87,18 +93,11 @@ public class SuppliersController implements Initializable {
 
                 String lowerCaseFilter = newValue.toLowerCase();
 
-                if (supplier.getSupplierId().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (supplier.getName().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (supplier.getContactNumber().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (supplier.getAddress().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (supplier.getEmail().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                }
-                return false;
+                return supplier.getSupplierId().toLowerCase().contains(lowerCaseFilter) ||
+                        supplier.getName().toLowerCase().contains(lowerCaseFilter) ||
+                        supplier.getContactNumber().toLowerCase().contains(lowerCaseFilter) ||
+                        supplier.getAddress().toLowerCase().contains(lowerCaseFilter) ||
+                        supplier.getEmail().toLowerCase().contains(lowerCaseFilter);
             });
 
             SortedList<Suppliersdto> sortedData = new SortedList<>(filteredData);
@@ -114,19 +113,15 @@ public class SuppliersController implements Initializable {
 
     private void loadNextId() throws SQLException {
         try {
-            String nextId = new SuppliersModel().getNextId();
+            String nextId = supplierBO.getNextId(); // Use BO
             txtId.setText(nextId);
             txtId.setEditable(false);
             System.out.println("DEBUG: Next ID retrieved: " + nextId);
-            if (nextId == null || nextId.isEmpty()) {
-                System.out.println("DEBUG: Got empty or null ID");
-            }
-            txtId.setText(nextId);
         } catch (SQLException e) {
             System.err.println("ERROR in loadNextId: " + e.getMessage());
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error loading next ID").show();
-            txtId.setText("S001");
+            new Alert(Alert.AlertType.ERROR, "Error loading next ID: " + e.getMessage()).show();
+            txtId.setText("S001"); // Fallback
             txtId.setEditable(false);
         }
     }
@@ -136,6 +131,7 @@ public class SuppliersController implements Initializable {
         clearFields();
         disableButtons(true);
         loadNextId();
+        tSuppliersTable.getSelectionModel().clearSelection(); // Clear table selection
     }
 
     @FXML
@@ -149,19 +145,21 @@ public class SuppliersController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String id = txtId.getText();
             try {
-                boolean isDelete = SuppliersModel.deleteSupplier(new Suppliersdto(id));
+                boolean isDelete = supplierBO.deleteSupplier(id); // Use BO
                 if (isDelete) {
+                    new Alert(Alert.AlertType.INFORMATION,"Supplier deleted successfully").show();
                     clearFields();
                     loadTable();
                     disableButtons(true);
                     loadNextId();
-                    new Alert(Alert.AlertType.INFORMATION,"Supplier deleted successfully").show();
                 } else {
-                    new Alert(Alert.AlertType.ERROR,"Supplier delete failed").show();
+                    new Alert(Alert.AlertType.ERROR,"Failed to delete supplier").show();
                 }
+            } catch (NotFoundException | InUseException e) { // Catch specific BO exceptions
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR,"Error deleting supplier").show();
+                new Alert(Alert.AlertType.ERROR,"Error deleting supplier: " + e.getMessage()).show();
             }
         }
     }
@@ -175,28 +173,39 @@ public class SuppliersController implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
 
         if (result.isPresent() && result.get() == ButtonType.OK) {
+            String name = txtName.getText();
+            String contactNumber = txtContact_number.getText();
+            String email = txtemail.getText();
+
+            boolean isValidName = name.matches(namePattern);
+            boolean isValidContact = contactNumber.matches(phonePattern);
+            boolean isValidEmail = email.matches(emailPattern);
+
+            if(!isValidName || !isValidContact || !isValidEmail) {
+                new Alert(Alert.AlertType.ERROR, "Invalid data. Please check fields (Name, Contact, Email)").show();
+                return;
+            }
+
             Suppliersdto suppliersdto = new Suppliersdto(
                     txtId.getText(),
-                    txtName.getText(),
-                    txtContact_number.getText(),
+                    name,
+                    contactNumber,
                     txtaddress.getText(),
-                    txtemail.getText()
+                    email
             );
 
             try {
-                boolean isSave = new SuppliersModel().updateSupplier(suppliersdto);
-                if (isSave) {
-                    clearFields();
-                    loadTable();
-                    disableButtons(true);
-                    loadNextId();
-                    new Alert(Alert.AlertType.INFORMATION, "Supplier updated successfully").show();
-                } else {
-                    new Alert(Alert.AlertType.ERROR, "Supplier update failed").show();
-                }
+                supplierBO.updateSupplier(suppliersdto); // Use BO
+                new Alert(Alert.AlertType.INFORMATION, "Supplier updated successfully").show();
+                clearFields();
+                loadTable();
+                disableButtons(true);
+                loadNextId();
+            } catch (NotFoundException | DuplicateException e) { // Catch specific BO exceptions
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Error updating supplier").show();
+                new Alert(Alert.AlertType.ERROR, "Error updating supplier: " + e.getMessage()).show();
             }
         }
     }
@@ -212,31 +221,29 @@ public class SuppliersController implements Initializable {
         boolean isValidEmail = email.matches(emailPattern);
 
         if(!isValidName || !isValidContact || !isValidEmail) {
-            new Alert(Alert.AlertType.ERROR, "Invalid data. Please check fields").show();
+            new Alert(Alert.AlertType.ERROR, "Invalid data. Please check fields (Name, Contact, Email)").show();
             return;
         }
 
         Suppliersdto suppliersdto = new Suppliersdto(
                 txtId.getText(),
-                txtName.getText(),
-                txtContact_number.getText(),
+                name,
+                contactNumber,
                 txtaddress.getText(),
-                txtemail.getText()
+                email
         );
 
         try {
-            boolean isSave = new SuppliersModel().saveSupplier(suppliersdto);
-            if (isSave) {
-                clearFields();
-                loadTable();
-                loadNextId();
-                new Alert(Alert.AlertType.INFORMATION, "Supplier saved successfully").show();
-            } else {
-                new Alert(Alert.AlertType.ERROR, "Supplier save failed").show();
-            }
+            supplierBO.saveSupplier(suppliersdto); // Use BO
+            new Alert(Alert.AlertType.INFORMATION, "Supplier saved successfully").show();
+            clearFields();
+            loadTable();
+            loadNextId();
+        } catch (DuplicateException e) { // Catch specific BO exception
+            new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error saving supplier").show();
+            new Alert(Alert.AlertType.ERROR, "Error saving supplier: " + e.getMessage()).show();
         }
     }
 
@@ -245,12 +252,16 @@ public class SuppliersController implements Initializable {
         txtContact_number.clear();
         txtaddress.clear();
         txtemail.clear();
+        // Reset styles
+        txtName.setStyle("");
+        txtContact_number.setStyle("");
+        txtemail.setStyle("");
     }
 
     private void disableButtons(boolean disable) {
         btnUpdate.setDisable(disable);
         btnDelete.setDisable(disable);
-        btnSave.setDisable(!disable);
+        btnSave.setDisable(!disable); // If update/delete are disabled, save is enabled, and vice-versa
     }
 
     @FXML
@@ -262,7 +273,8 @@ public class SuppliersController implements Initializable {
             txtContact_number.setText(suppliersdto.getContactNumber());
             txtaddress.setText(suppliersdto.getAddress());
             txtemail.setText(suppliersdto.getEmail());
-            disableButtons(false);
+            disableButtons(false); // Enable update and delete
+            btnSave.setDisable(true); // Disable save
         }
     }
 
@@ -289,7 +301,7 @@ public class SuppliersController implements Initializable {
 
     @FXML
     void searchSupplier(KeyEvent event) {
-
+        // Handled by the setupSearchFilter method
     }
 
     @FXML

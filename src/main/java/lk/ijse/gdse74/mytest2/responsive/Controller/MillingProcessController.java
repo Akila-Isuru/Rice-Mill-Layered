@@ -8,14 +8,19 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
-import lk.ijse.gdse74.mytest2.responsive.dto.MillingProcessdto;
-import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.MillingProcessBO; // Corrected import
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
+import lk.ijse.gdse74.mytest2.responsive.dto.MillingProcessdto; // Using the existing DTO name
 
 import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Time;
 import java.time.LocalTime;
-import java.util.ArrayList;
+import java.util.List; // Use List instead of ArrayList
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -26,10 +31,10 @@ public class MillingProcessController implements Initializable {
     @FXML private Button btnSave;
     @FXML private Button btnUpdate;
     @FXML private Button btnOverride;
-    @FXML private TableColumn<MillingProcessdto, Double> colBran_rice;
+    @FXML private TableColumn<MillingProcessdto, Double> colBran_rice; // Renamed to reflect DTO
     @FXML private TableColumn<MillingProcessdto, Double> colBroken_rice;
     @FXML private TableColumn<MillingProcessdto, Time> colEnd_time;
-    @FXML private TableColumn<MillingProcessdto, Double> colHusk;
+    @FXML private TableColumn<MillingProcessdto, Double> colHusk; // Renamed to reflect DTO
     @FXML private TableColumn<MillingProcessdto, String> colMilling_id;
     @FXML private TableColumn<MillingProcessdto, String> colPaddy_id;
     @FXML private TableColumn<MillingProcessdto, Time> colStart_time;
@@ -54,32 +59,34 @@ public class MillingProcessController implements Initializable {
     private Time currentStartTime;
     private ObservableList<String> paddyIdList = FXCollections.observableArrayList();
 
+    // Use BOFactory to get BO instance
+    private final MillingProcessBO millingProcessBO = BOFactory.getInstance().getBO(BOTypes.MILLING_PROCESS);
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCurrentTimeAsStartTime();
         initTimeSpinners();
         setupAutomaticCalculations();
-        disableButtons(true);
+        disableActionButtons(true); // Disable Update, Delete, Save initially
         loadPaddyIds();
 
         try {
             loadNextId();
             loadTable();
         } catch (SQLException e) {
-            showAlert(Alert.AlertType.ERROR, "Database Error: " + e.getMessage());
-        } catch (ClassNotFoundException e) {
-            showAlert(Alert.AlertType.ERROR, "Class Not Found: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Database Error during initialization: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
     private void loadPaddyIds() {
         try {
-            ArrayList<String> ids = MillingProcessModel.getAllPaddyIds();
-            paddyIdList.clear();
-            paddyIdList.addAll(ids);
+            List<String> ids = millingProcessBO.getAllPaddyIdsForMilling(); // Use BO
+            paddyIdList.setAll(ids); // Use setAll to clear and add
             cmbPaddyId.setItems(paddyIdList);
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             showAlert(Alert.AlertType.ERROR, "Failed to load paddy IDs: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -109,8 +116,17 @@ public class MillingProcessController implements Initializable {
                 } catch (NumberFormatException e) {
                     clearByproductFields();
                 }
+            } else if (newVal.isEmpty()) {
+                clearByproductFields();
             }
+            updateSaveAndUpdateButtonState(); // Update button state based on fields
         });
+
+        // Add listeners to other fields to enable/disable save/update
+        cmbPaddyId.valueProperty().addListener((obs, oldVal, newVal) -> updateSaveAndUpdateButtonState());
+        txtBrokenRice.textProperty().addListener((obs, oldVal, newVal) -> updateSaveAndUpdateButtonState());
+        txtHusk.textProperty().addListener((obs, oldVal, newVal) -> updateSaveAndUpdateButtonState());
+        txtBran.textProperty().addListener((obs, oldVal, newVal) -> updateSaveAndUpdateButtonState());
 
         txtBrokenRice.setEditable(false);
         txtHusk.setEditable(false);
@@ -141,6 +157,7 @@ public class MillingProcessController implements Initializable {
         } catch (Exception e) {
             showInvalidDuration("Invalid Time");
         }
+        updateSaveAndUpdateButtonState(); // Update button state after duration calculation
     }
 
     private Time getEndTimeFromSpinners() {
@@ -148,7 +165,7 @@ public class MillingProcessController implements Initializable {
             int hour = endHourSpinner.getValue();
             int minute = endMinuteSpinner.getValue();
             int second = endSecondSpinner.getValue();
-            return new Time(hour, minute, second);
+            return Time.valueOf(String.format("%02d:%02d:%02d", hour, minute, second));
         } catch (Exception e) {
             return null;
         }
@@ -160,16 +177,15 @@ public class MillingProcessController implements Initializable {
 
         try {
             MillingProcessdto dto = createMillingProcessDto();
-            boolean isSaved = MillingProcessModel.saveMillingProcess(dto);
+            millingProcessBO.saveMillingProcess(dto); // Use BO
 
-            if (isSaved) {
-                showAlert(Alert.AlertType.INFORMATION, "Process Saved");
-                clearFields();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Save Failed");
-            }
+            showAlert(Alert.AlertType.INFORMATION, "Milling Process Saved Successfully!");
+            clearFields();
+        } catch (DuplicateException e) { // Catch specific BO exception
+            showAlert(Alert.AlertType.ERROR, e.getMessage());
         } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error saving: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error saving milling process: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -179,16 +195,15 @@ public class MillingProcessController implements Initializable {
 
         try {
             MillingProcessdto dto = createMillingProcessDto();
-            boolean isUpdated = MillingProcessModel.updateMillingProcess(dto);
+            millingProcessBO.updateMillingProcess(dto); // Use BO
 
-            if (isUpdated) {
-                showAlert(Alert.AlertType.INFORMATION, "Process Updated");
-                clearFields();
-            } else {
-                showAlert(Alert.AlertType.ERROR, "Update Failed");
-            }
+            showAlert(Alert.AlertType.INFORMATION, "Milling Process Updated Successfully!");
+            clearFields();
+        } catch (NotFoundException e) { // Catch specific BO exception
+            showAlert(Alert.AlertType.ERROR, e.getMessage());
         } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error updating: " + e.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error updating milling process: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -202,15 +217,18 @@ public class MillingProcessController implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                boolean isDeleted = MillingProcessModel.deleteMillingProcess(new MillingProcessdto(txtMilling_id.getText()));
+                boolean isDeleted = millingProcessBO.deleteMillingProcess(txtMilling_id.getText()); // Use BO
                 if (isDeleted) {
-                    showAlert(Alert.AlertType.INFORMATION, "Process Deleted");
+                    showAlert(Alert.AlertType.INFORMATION, "Milling Process Deleted Successfully!");
                     clearFields();
                 } else {
-                    showAlert(Alert.AlertType.ERROR, "Deletion Failed");
+                    showAlert(Alert.AlertType.ERROR, "Milling Process Deletion Failed!");
                 }
+            } catch (NotFoundException | InUseException e) { // Catch specific BO exceptions
+                showAlert(Alert.AlertType.ERROR, e.getMessage());
             } catch (Exception e) {
-                showAlert(Alert.AlertType.ERROR, "Error deleting: " + e.getMessage());
+                showAlert(Alert.AlertType.ERROR, "Error deleting milling process: " + e.getMessage());
+                e.printStackTrace();
             }
         }
     }
@@ -219,8 +237,9 @@ public class MillingProcessController implements Initializable {
     void btnClearOnAction(ActionEvent event) {
         try {
             clearFields();
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException e) {
             showAlert(Alert.AlertType.ERROR, "Error clearing fields: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -232,13 +251,14 @@ public class MillingProcessController implements Initializable {
         txtBran.setEditable(overrideEnabled);
 
         if (overrideEnabled) {
-            btnOverride.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;");
+            btnOverride.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white;"); // Red for "Lock"
             btnOverride.setText("Lock");
         } else {
-            btnOverride.setStyle("-fx-background-color: #9b59b6; -fx-text-fill: white;");
+            btnOverride.setStyle("-fx-background-color: #9b59b6; -fx-text-fill: white;"); // Purple for "Override"
             btnOverride.setText("Override");
             recalculateByproducts();
         }
+        updateSaveAndUpdateButtonState(); // Update button state after override toggle
     }
 
     public void tableColumnOnClicked(MouseEvent mouseEvent) {
@@ -261,10 +281,12 @@ public class MillingProcessController implements Initializable {
             endMinuteSpinner.getValueFactory().setValue(process.getEndTime().getMinutes());
             endSecondSpinner.getValueFactory().setValue(process.getEndTime().getSeconds());
 
-            disableButtons(false);
-            btnSave.setDisable(true);
-            overrideEnabled = true;
-            toggleOverride(null);
+            disableActionButtons(false); // Enable Update, Delete
+            btnSave.setDisable(true); // Disable Save
+            overrideEnabled = true; // Set override to true when loading data
+            toggleOverride(null); // Apply override styling and text
+
+            calculateDuration(); // Recalculate duration for selected item
         }
     }
 
@@ -283,31 +305,46 @@ public class MillingProcessController implements Initializable {
 
     private boolean validateInputs() {
         if (cmbPaddyId.getValue() == null || cmbPaddyId.getValue().isEmpty()) {
-            showAlert(Alert.AlertType.ERROR, "Please select a Paddy ID");
+            showAlert(Alert.AlertType.ERROR, "Please select a Paddy ID.");
+            return false;
+        }
+        if (txtMilledQuantity.getText().isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Milled quantity cannot be empty.");
+            return false;
+        }
+        if (txtBrokenRice.getText().isEmpty() || txtHusk.getText().isEmpty() || txtBran.getText().isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "Byproduct fields cannot be empty. Enter values or uncheck override.");
             return false;
         }
 
         try {
             Time endTime = getEndTimeFromSpinners();
-            if (endTime == null || endTime.before(currentStartTime)) {
-                showAlert(Alert.AlertType.ERROR, "Invalid time values");
+            if (endTime == null || (currentStartTime != null && endTime.before(currentStartTime))) {
+                showAlert(Alert.AlertType.ERROR, "Invalid end time. It must be after start time.");
                 return false;
             }
 
             double milledQty = Double.parseDouble(txtMilledQuantity.getText());
             if (milledQty <= 0) {
-                showAlert(Alert.AlertType.ERROR, "Milled quantity must be positive");
+                showAlert(Alert.AlertType.ERROR, "Milled quantity must be positive.");
                 return false;
+            }
+
+            // Validate byproduct fields if override is enabled
+            if (overrideEnabled) {
+                Double.parseDouble(txtBrokenRice.getText());
+                Double.parseDouble(txtHusk.getText());
+                Double.parseDouble(txtBran.getText());
             }
 
             return true;
         } catch (NumberFormatException e) {
-            showAlert(Alert.AlertType.ERROR, "Invalid numeric values");
+            showAlert(Alert.AlertType.ERROR, "Invalid numeric values entered.");
             return false;
         }
     }
 
-    private void clearFields() throws SQLException, ClassNotFoundException {
+    private void clearFields() throws SQLException {
         cmbPaddyId.setValue(null);
         txtMilledQuantity.clear();
         clearByproductFields();
@@ -324,10 +361,14 @@ public class MillingProcessController implements Initializable {
         overrideEnabled = false;
         btnOverride.setStyle("-fx-background-color: #9b59b6; -fx-text-fill: white;");
         btnOverride.setText("Override");
+        txtBrokenRice.setEditable(false); // Ensure fields are not editable after clear
+        txtHusk.setEditable(false);
+        txtBran.setEditable(false);
 
         loadNextId();
         loadTable();
-        disableButtons(true);
+        disableActionButtons(true); // Disable Update, Delete after clear
+        btnSave.setDisable(false); // Enable Save after clear
     }
 
     private void clearByproductFields() {
@@ -336,8 +377,9 @@ public class MillingProcessController implements Initializable {
         txtBran.clear();
     }
 
-    private void loadNextId() throws SQLException, ClassNotFoundException {
-        txtMilling_id.setText(new MillingProcessModel().getNextId());
+    private void loadNextId() throws SQLException {
+        txtMilling_id.setText(millingProcessBO.getNextMillingProcessId()); // Use BO
+        txtMilling_id.setEditable(false); // Keep ID field non-editable
     }
 
     private void loadTable() {
@@ -347,26 +389,49 @@ public class MillingProcessController implements Initializable {
         colEnd_time.setCellValueFactory(new PropertyValueFactory<>("endTime"));
         colmilled_Quantity.setCellValueFactory(new PropertyValueFactory<>("milledQuantity"));
         colBroken_rice.setCellValueFactory(new PropertyValueFactory<>("brokenRice"));
-        colHusk.setCellValueFactory(new PropertyValueFactory<>("husk"));
-        colBran_rice.setCellValueFactory(new PropertyValueFactory<>("bran"));
+        colHusk.setCellValueFactory(new PropertyValueFactory<>("husk")); // DTO uses 'husk'
+        colBran_rice.setCellValueFactory(new PropertyValueFactory<>("bran")); // DTO uses 'bran'
 
         try {
-            ArrayList<MillingProcessdto> processes = MillingProcessModel.viewAllMillingProcess();
+            List<MillingProcessdto> processes = millingProcessBO.getAllMillingProcesses(); // Use BO
             table.setItems(FXCollections.observableArrayList(processes));
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error loading data: " + e.getMessage());
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Error loading data into table: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
-    private void disableButtons(boolean disable) {
+    private void disableActionButtons(boolean disable) {
         btnUpdate.setDisable(disable);
         btnDelete.setDisable(disable);
+        // btnSave state is managed separately by updateSaveAndUpdateButtonState and clearFields
+    }
+
+    private void updateSaveAndUpdateButtonState() {
+        boolean allFieldsFilled = !txtMilledQuantity.getText().isEmpty() &&
+                cmbPaddyId.getValue() != null && !cmbPaddyId.getValue().isEmpty() &&
+                !txtBrokenRice.getText().isEmpty() &&
+                !txtHusk.getText().isEmpty() &&
+                !txtBran.getText().isEmpty();
+
+        boolean isDurationValid = lblDuration.getStyle().contains("green");
+
+        if (table.getSelectionModel().getSelectedItem() == null) { // Not editing existing record
+            btnSave.setDisable(!(allFieldsFilled && isDurationValid));
+            btnUpdate.setDisable(true);
+            btnDelete.setDisable(true);
+        } else { // Editing existing record
+            btnSave.setDisable(true); // Always disable save when an item is selected
+            btnUpdate.setDisable(!(allFieldsFilled && isDurationValid));
+            btnDelete.setDisable(false);
+        }
     }
 
     private void showInvalidDuration(String message) {
         lblDuration.setText(message);
         lblDuration.setStyle("-fx-text-fill: red;");
-        disableSaveButtons(true);
+        btnSave.setDisable(true); // Cannot save if duration is invalid
+        btnUpdate.setDisable(true); // Cannot update if duration is invalid
     }
 
     private void showValidDuration(Time startTime, Time endTime) {
@@ -377,12 +442,7 @@ public class MillingProcessController implements Initializable {
 
         lblDuration.setText(String.format("Duration: %02d:%02d:%02d", diffHours, diffMinutes, diffSeconds));
         lblDuration.setStyle("-fx-text-fill: green;");
-        disableSaveButtons(false);
-    }
-
-    private void disableSaveButtons(boolean disable) {
-        btnSave.setDisable(disable);
-        btnUpdate.setDisable(disable);
+        updateSaveAndUpdateButtonState(); // Enable save/update if duration becomes valid
     }
 
     private void recalculateByproducts() {
@@ -392,6 +452,8 @@ public class MillingProcessController implements Initializable {
             } catch (NumberFormatException e) {
                 clearByproductFields();
             }
+        } else {
+            clearByproductFields(); // Clear if milled quantity is empty
         }
     }
 
