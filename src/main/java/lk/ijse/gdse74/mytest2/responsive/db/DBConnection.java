@@ -9,7 +9,7 @@ public class DBConnection {
     private final Connection connection;
 
     private DBConnection() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/ rice_mill ","root","mysql");
+        connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/ rice_mill ","root","mysqlpassword");
     }
 
     public DBConnection(Connection connection) {

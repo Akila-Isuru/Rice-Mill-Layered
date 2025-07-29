@@ -1,6 +1,5 @@
 package lk.ijse.gdse74.mytest2.responsive.Controller;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -12,26 +11,31 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import lk.ijse.gdse74.mytest2.responsive.dto.Farmersdto;
-import lk.ijse.gdse74.mytest2.responsive.model.FarmersModel;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.FarmerBO; // Corrected import
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
+import lk.ijse.gdse74.mytest2.responsive.dto.FarmerDTO; // Corrected import
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-public class FarmersController implements Initializable {
+public class FarmerController implements Initializable { // Renamed class
 
-    @FXML private TableColumn<Farmersdto, String> coladdress;
-    @FXML private TableColumn<Farmersdto, String> colcontatcnumber;
-    @FXML private TableColumn<Farmersdto, String> colid;
-    @FXML private TableColumn<Farmersdto, String> colname;
+    @FXML private TableColumn<FarmerDTO, String> coladdress;
+    @FXML private TableColumn<FarmerDTO, String> colcontatcnumber;
+    @FXML private TableColumn<FarmerDTO, String> colid;
+    @FXML private TableColumn<FarmerDTO, String> colname;
     @FXML private Button btnClear;
     @FXML private Button btnDelete;
     @FXML private Button btnSave;
     @FXML private Button btnUpdate;
-    @FXML private TableView<Farmersdto> tfarmersTable;
+    @FXML private TableView<FarmerDTO> tfarmersTable; // Keep this name for FXML consistency
     @FXML private TextField txtContact_number;
     @FXML private TextField txtId;
     @FXML private TextField txtName;
@@ -40,12 +44,10 @@ public class FarmersController implements Initializable {
     @FXML private Label lblFarmerCount;
 
     private final String namePattern = "^[A-Za-z ]+$";
-    private final String nicPattern = "^[0-9]{9}[vVxX]||[0-9]{12}$";
-    private final String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.lk$";
     private final String phonePattern = "^(?:0|\\+94|0094)?(?:07\\d{8})$";
 
-    private ObservableList<Farmersdto> farmerMasterData = FXCollections.observableArrayList();
-    FarmersModel farmersModel = new FarmersModel();
+    private ObservableList<FarmerDTO> farmerMasterData = FXCollections.observableArrayList();
+    private final FarmerBO farmerBO = BOFactory.getInstance().getBO(BOTypes.FARMER); // Use FarmerBO
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -55,12 +57,13 @@ public class FarmersController implements Initializable {
             disableButtons(true);
             setupSearchFilter();
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            new Alert(Alert.AlertType.ERROR, "Failed to initialize: " + e.getMessage()).show();
+            e.printStackTrace();
         }
     }
 
     private void setupSearchFilter() {
-        FilteredList<Farmersdto> filteredData = new FilteredList<>(farmerMasterData, p -> true);
+        FilteredList<FarmerDTO> filteredData = new FilteredList<>(farmerMasterData, p -> true);
 
         txtSearch.textProperty().addListener((observable, oldValue, newValue) -> {
             filteredData.setPredicate(farmer -> {
@@ -70,19 +73,13 @@ public class FarmersController implements Initializable {
 
                 String lowerCaseFilter = newValue.toLowerCase();
 
-                if (farmer.getFarmerId().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (farmer.getName().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (farmer.getContactNumber().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (farmer.getAddress().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                }
-                return false;
+                return farmer.getFarmerId().toLowerCase().contains(lowerCaseFilter) ||
+                        farmer.getName().toLowerCase().contains(lowerCaseFilter) ||
+                        farmer.getContactNumber().toLowerCase().contains(lowerCaseFilter) ||
+                        farmer.getAddress().toLowerCase().contains(lowerCaseFilter);
             });
 
-            SortedList<Farmersdto> sortedData = new SortedList<>(filteredData);
+            SortedList<FarmerDTO> sortedData = new SortedList<>(filteredData);
             sortedData.comparatorProperty().bind(tfarmersTable.comparatorProperty());
             tfarmersTable.setItems(sortedData);
             updateFarmerCount();
@@ -106,70 +103,70 @@ public class FarmersController implements Initializable {
         coladdress.setCellValueFactory(new PropertyValueFactory<>("address"));
 
         try {
-            ArrayList<Farmersdto> farmersdtos = farmersModel.viewAllFarmers();
-            if(farmersdtos != null) {
-                farmerMasterData = FXCollections.observableArrayList(farmersdtos);
-                tfarmersTable.setItems(farmerMasterData);
-                updateFarmerCount();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            List<FarmerDTO> farmers = farmerBO.getAllFarmers(); // Use FarmerBO
+            farmerMasterData = FXCollections.observableArrayList(farmers);
+            tfarmersTable.setItems(farmerMasterData);
+            updateFarmerCount();
+        } catch (SQLException e) {
+            new Alert(Alert.AlertType.ERROR, "Failed to load farmer data: " + e.getMessage()).show();
+            throw e; // Re-throw to be caught by initialize
         }
     }
 
-    public void btnSaveOnAction(ActionEvent actionEvent) throws ClassNotFoundException, SQLException {
+    public void btnSaveOnAction(ActionEvent actionEvent) {
         String name = txtName.getText();
         String contactNumber = txtContact_number.getText();
+        String address = txtaddress.getText();
 
         boolean isValidName = name.matches(namePattern);
         boolean isValidContact = contactNumber.matches(phonePattern);
 
-        Farmersdto farmersdto = new Farmersdto(txtId.getText(), txtName.getText(), txtaddress.getText(), txtContact_number.getText());
-        if(isValidName && isValidContact) {
+        if (isValidName && isValidContact) {
+            FarmerDTO farmerDTO = new FarmerDTO(
+                    txtId.getText(),
+                    name,
+                    contactNumber,
+                    address
+            );
+
             try {
-                boolean isSave = farmersModel.saveFarmer(farmersdto);
-                if (isSave) {
-                    clearFields();
-                    new Alert(Alert.AlertType.INFORMATION, "Farmer saved successfully").show();
-                } else {
-                    new Alert(Alert.AlertType.INFORMATION, "Farmer saved Faild").show();
-                }
+                farmerBO.saveFarmer(farmerDTO); // Use FarmerBO
+                new Alert(Alert.AlertType.INFORMATION, "Farmer saved successfully").show();
+                clearFields();
+            } catch (DuplicateException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Error saving").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to save farmer: " + e.getMessage()).show();
             }
+        } else {
+            new Alert(Alert.AlertType.WARNING, "Please fill in valid details (Name, Contact Number)").show();
         }
     }
 
     private void clearFields() throws SQLException {
-        txtName.setText("");
-        txtContact_number.setText("");
-        txtaddress.setText("");
+        txtName.clear();
+        txtContact_number.clear();
+        txtaddress.clear();
         loadNextId();
         disableButtons(true);
-        Platform.runLater(() -> {
-            txtId.setText(txtId.getText());
-            System.out.println("UI refreshed with ID: " + txtId.getText());
-        });
         loadTable();
     }
 
     private void loadNextId() throws SQLException {
         try {
-            String nextId = farmersModel.getNextId();
+            String nextId = farmerBO.getNextId(); // Use FarmerBO
             txtId.setText(nextId);
             txtId.setEditable(false);
-            System.out.println("DEBUG: Next ID retrieved: " + nextId);
         } catch (SQLException e) {
-            System.err.println("ERROR in loadNextId: " + e.getMessage());
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error loading next ID").show();
+            new Alert(Alert.AlertType.ERROR, "Error loading next ID: " + e.getMessage()).show();
+            throw e;
         }
     }
 
     public void btnUpdateOnAction(ActionEvent actionEvent) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirmation");
+        alert.setTitle("Confirmation Dialog");
         alert.setHeaderText("Update Farmer");
         alert.setContentText("Are you sure you want to update this farmer?");
 
@@ -177,31 +174,38 @@ public class FarmersController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String name = txtName.getText();
             String contactNumber = txtContact_number.getText();
+            String address = txtaddress.getText();
 
             boolean isValidName = name.matches(namePattern);
             boolean isValidContact = contactNumber.matches(phonePattern);
 
-            Farmersdto farmersdto = new Farmersdto(txtId.getText(), txtName.getText(), txtaddress.getText(), txtContact_number.getText());
-            if(isValidName && isValidContact) {
+            if (isValidName && isValidContact) {
+                FarmerDTO farmerDTO = new FarmerDTO(
+                        txtId.getText(),
+                        name,
+                        contactNumber,
+                        address
+                );
+
                 try {
-                    boolean isSave = farmersModel.updateFarmer(farmersdto);
-                    if (isSave) {
-                        clearFields();
-                        new Alert(Alert.AlertType.INFORMATION, "Farmer updated successfully").show();
-                    } else {
-                        new Alert(Alert.AlertType.INFORMATION, "Farmer update Failed").show();
-                    }
+                    farmerBO.updateFarmer(farmerDTO); // Use FarmerBO
+                    new Alert(Alert.AlertType.INFORMATION, "Farmer updated successfully").show();
+                    clearFields();
+                } catch (NotFoundException | DuplicateException e) {
+                    new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
                 } catch (Exception e) {
                     e.printStackTrace();
-                    new Alert(Alert.AlertType.ERROR, "Error updating").show();
+                    new Alert(Alert.AlertType.ERROR, "Failed to update farmer: " + e.getMessage()).show();
                 }
+            } else {
+                new Alert(Alert.AlertType.WARNING, "Please fill in valid details (Name, Contact Number)").show();
             }
         }
     }
 
     public void btnDeleteOnAction(ActionEvent actionEvent) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Confirmation");
+        alert.setTitle("Confirmation Dialog");
         alert.setHeaderText("Delete Farmer");
         alert.setContentText("Are you sure you want to delete this farmer?");
 
@@ -209,16 +213,18 @@ public class FarmersController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String id = txtId.getText();
             try {
-                boolean isDelete = farmersModel.deleteFarmer(new Farmersdto(id));
-                if (isDelete) {
+                boolean isDeleted = farmerBO.deleteFarmer(id); // Use FarmerBO
+                if (isDeleted) {
+                    new Alert(Alert.AlertType.INFORMATION, "Farmer deleted successfully").show();
                     clearFields();
-                    new Alert(Alert.AlertType.INFORMATION,"Farmer deleted successfully").show();
                 } else {
-                    new Alert(Alert.AlertType.INFORMATION,"Farmer delete Failed").show();
+                    new Alert(Alert.AlertType.ERROR, "Failed to delete farmer").show();
                 }
+            } catch (InUseException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR,"Error deleting").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to delete farmer: " + e.getMessage()).show();
             }
         }
     }
@@ -229,18 +235,19 @@ public class FarmersController implements Initializable {
 
     @FXML
     void tableColumnOnClicked(MouseEvent event) {
-        Farmersdto farmersdto = tfarmersTable.getSelectionModel().getSelectedItem();
-        btnSave.setDisable(true);
-        if(farmersdto != null) {
-            txtId.setText(farmersdto.getFarmerId());
-            txtName.setText(farmersdto.getName());
-            txtaddress.setText(farmersdto.getAddress());
-            txtContact_number.setText(farmersdto.getContactNumber());
-            disableButtons(false);
+        FarmerDTO farmerDTO = tfarmersTable.getSelectionModel().getSelectedItem(); // Use FarmerDTO
+        if (farmerDTO != null) {
+            txtId.setText(farmerDTO.getFarmerId());
+            txtName.setText(farmerDTO.getName());
+            txtContact_number.setText(farmerDTO.getContactNumber());
+            txtaddress.setText(farmerDTO.getAddress());
+
+            disableButtons(false); // Enable update and delete
+            btnSave.setDisable(true); // Disable save
         }
     }
 
-    public void txtNamehange(KeyEvent keyEvent) {
+    public void txtNamehange(KeyEvent keyEvent) { // Typo corrected from txtNameChange
         String name = txtName.getText();
         boolean isValidName = name.matches(namePattern);
         txtName.setStyle(isValidName ? "-fx-border-color: blue" : "-fx-border-color: red");
@@ -254,7 +261,7 @@ public class FarmersController implements Initializable {
 
     @FXML
     void searchFarmer(KeyEvent event) {
-
+        // Handled by the setupSearchFilter method
     }
 
     @FXML

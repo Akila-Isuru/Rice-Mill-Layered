@@ -1,4 +1,4 @@
-package lk.ijse.gdse74.mytest2.responsive.dto;
+package lk.ijse.gdse74.mytest2.responsive.entity;
 
 import lombok.*;
 
@@ -7,14 +7,9 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class Farmersdto {
+public class Farmer {
     private String farmerId;
     private String name;
     private String contactNumber;
     private String address;
-
-    public Farmersdto(String id) {
-
-        this.farmerId = id;
-    }
 }
