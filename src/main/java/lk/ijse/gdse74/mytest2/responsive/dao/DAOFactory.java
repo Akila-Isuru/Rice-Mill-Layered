@@ -1,11 +1,8 @@
 package lk.ijse.gdse74.mytest2.responsive.dao;
 
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.CustomerDAOImpl;
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.EmployeeDAOImpl; // New import
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.FarmerDAOImpl;
-import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.MachineMaintenanceDAOImpl;
-import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.MillingProcessDAOImpl;
-//import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.PaddyDAOImpl; // Keep if you have this class
-//import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.RawPaddyDAOImpl;
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.SupplierDAOImpl;
 
 public class DAOFactory {
@@ -23,11 +20,8 @@ public class DAOFactory {
         return switch (daoType) {
             case CUSTOMER -> (T) new CustomerDAOImpl();
             case FARMER -> (T) new FarmerDAOImpl();
-            case MACHINE_MAINTENANCE -> (T) new MachineMaintenanceDAOImpl();
-            case MILLING_PROCESS -> (T) new MillingProcessDAOImpl();
-           // case PADDY -> (T) new PaddyDAOImpl();
-           // case RAW_PADDY -> (T) new RawPaddyDAOImpl();
             case SUPPLIER -> (T) new SupplierDAOImpl();
+            case EMPLOYEE -> (T) new EmployeeDAOImpl(); // New case
         };
     }
 }

@@ -1,6 +1,5 @@
 package lk.ijse.gdse74.mytest2.responsive.Controller;
 
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -12,13 +11,18 @@ import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.EmployeeBO; // New import
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
 import lk.ijse.gdse74.mytest2.responsive.dto.Employeedto;
-import lk.ijse.gdse74.mytest2.responsive.model.EmployeeModel;
 
 import java.math.BigDecimal;
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -46,23 +50,36 @@ public class EmployeeController implements Initializable {
     @FXML private TextField txtSearch;
     @FXML private Label lblEmployeeCount;
 
+    // Validation patterns
     private final String namePattern = "^[A-Za-z ]+$";
-    private final String phonePattern = "^(?:0|\\+94|0094)?(?:07\\d{8})$";
+    private final String phonePattern = "^0\\d{9}$"; // Matches 0xxxxxxxxx (10 digits starting with 0)
     private final String salaryPattern = "^\\d+(\\.\\d{1,2})?$"; // Allows positive numbers with up to 2 decimal places
 
     private ObservableList<Employeedto> employeeMasterData = FXCollections.observableArrayList();
-    EmployeeModel employeeModel = new EmployeeModel();
+    private final EmployeeBO employeeBO = BOFactory.getInstance().getBO(BOTypes.EMPLOYEE); // Use BOFactory
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        setCellValueFactories();
         try {
-            loadTable();
             loadNextId();
-            disableButtons(true);
+            loadTable();
             setupSearchFilter();
+            setupFieldListeners(); // New method for real-time validation and button state
+            //updateButtonStates(); // Set initial button states
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            new Alert(Alert.AlertType.ERROR, "Initialization Error: " + e.getMessage()).show();
+            throw new RuntimeException("Failed to initialize EmployeeController", e);
         }
+    }
+
+    private void setCellValueFactories() {
+        colEmployeeId.setCellValueFactory(new PropertyValueFactory<>("employeeId"));
+        colName.setCellValueFactory(new PropertyValueFactory<>("name"));
+        colAddress.setCellValueFactory(new PropertyValueFactory<>("address"));
+        colContactNumber.setCellValueFactory(new PropertyValueFactory<>("contactNumber"));
+        colJobRole.setCellValueFactory(new PropertyValueFactory<>("jobRole"));
+        colBasicSalary.setCellValueFactory(new PropertyValueFactory<>("basicSalary"));
     }
 
     private void setupSearchFilter() {
@@ -76,19 +93,11 @@ public class EmployeeController implements Initializable {
 
                 String lowerCaseFilter = newValue.toLowerCase();
 
-                if (employee.getEmployeeId().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (employee.getName().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (employee.getContactNumber().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (employee.getAddress().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                } else if (employee.getJobRole().toLowerCase().contains(lowerCaseFilter)) {
-                    return true;
-                }
-
-                return false;
+                return employee.getEmployeeId().toLowerCase().contains(lowerCaseFilter) ||
+                        employee.getName().toLowerCase().contains(lowerCaseFilter) ||
+                        employee.getContactNumber().toLowerCase().contains(lowerCaseFilter) ||
+                        employee.getAddress().toLowerCase().contains(lowerCaseFilter) ||
+                        employee.getJobRole().toLowerCase().contains(lowerCaseFilter);
             });
 
             SortedList<Employeedto> sortedData = new SortedList<>(filteredData);
@@ -102,98 +111,154 @@ public class EmployeeController implements Initializable {
         lblEmployeeCount.setText("Employees: " + tblEmployees.getItems().size());
     }
 
-    private void disableButtons(boolean disable) {
-        btnUpdate.setDisable(disable);
-        btnDelete.setDisable(disable);
-        btnSave.setDisable(!disable);
-    }
+    // Removed the old disableButtons(boolean disable) method.
+    // It's replaced by the more granular updateButtonStates().
 
     private void loadTable() throws SQLException {
-        colEmployeeId.setCellValueFactory(new PropertyValueFactory<>("employeeId"));
-        colName.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colAddress.setCellValueFactory(new PropertyValueFactory<>("address"));
-        colContactNumber.setCellValueFactory(new PropertyValueFactory<>("contactNumber"));
-        colJobRole.setCellValueFactory(new PropertyValueFactory<>("jobRole"));
-        colBasicSalary.setCellValueFactory(new PropertyValueFactory<>("basicSalary"));
-
-
         try {
-            ArrayList<Employeedto> employeedtos = employeeModel.viewAllEmployees();
-            if(employeedtos != null) {
-                employeeMasterData = FXCollections.observableArrayList(employeedtos);
-                tblEmployees.setItems(employeeMasterData);
-                updateEmployeeCount();
-            }
+            List<Employeedto> employeedtos = employeeBO.getAllEmployees(); // Use BO
+            employeeMasterData.clear();
+            employeeMasterData.addAll(employeedtos);
+            tblEmployees.setItems(employeeMasterData);
+            updateEmployeeCount();
         } catch (Exception e) {
             e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Failed to load employee data: " + e.getMessage()).show();
         }
     }
 
-    public void btnSaveOnAction(ActionEvent actionEvent) {
-        String name = txtName.getText();
-        String contactNumber = txtContactNumber.getText();
-        String basicSalaryStr = txtBasicSalary.getText();
+    // New method to set up listeners for all input fields to update button states and styling
+    private void setupFieldListeners() {
+        txtName.textProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
+        txtAddress.textProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
+        txtContactNumber.textProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
+        txtJobRole.textProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
+        txtBasicSalary.textProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
+        tblEmployees.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
+    }
+
+    // Central method to control button states and apply styling
+    private void updateButtonStatesAndStyles() {
+        boolean isValidInputForSaveOrUpdate = validateInputFields(false); // Validate without showing alerts yet
+
+        Employeedto selectedEmployee = tblEmployees.getSelectionModel().getSelectedItem();
+
+        if (selectedEmployee == null) { // No item selected in table (implies new entry)
+            btnSave.setDisable(!isValidInputForSaveOrUpdate); // Enable Save if valid
+            btnUpdate.setDisable(true); // Disable Update
+            btnDelete.setDisable(true); // Disable Delete
+        } else { // An item is selected in the table (implies update or delete)
+            btnSave.setDisable(true); // Disable Save
+            btnUpdate.setDisable(!isValidInputForSaveOrUpdate); // Enable Update if valid
+            btnDelete.setDisable(false); // Enable Delete
+        }
+        // Also apply real-time styles
+        applyValidationStyles();
+    }
+
+    // Consolidated validation method. showDialog parameter controls alert visibility.
+    private boolean validateInputFields(boolean showDialog) {
+        String name = txtName.getText().trim();
+        String address = txtAddress.getText().trim();
+        String contactNumber = txtContactNumber.getText().trim();
+        String jobRole = txtJobRole.getText().trim();
+        String basicSalaryStr = txtBasicSalary.getText().trim();
+
+        if (name.isEmpty() || address.isEmpty() || contactNumber.isEmpty() || jobRole.isEmpty() || basicSalaryStr.isEmpty()) {
+            if (showDialog) new Alert(Alert.AlertType.ERROR, "All fields are required.").show();
+            return false;
+        }
 
         boolean isValidName = name.matches(namePattern);
         boolean isValidContact = contactNumber.matches(phonePattern);
         boolean isValidSalary = basicSalaryStr.matches(salaryPattern);
 
-        if(isValidName && isValidContact && isValidSalary) {
-            try {
-                BigDecimal basicSalary = new BigDecimal(basicSalaryStr);
-                Employeedto employeedto = new Employeedto(
-                        txtEmployeeId.getText(),
-                        txtName.getText(),
-                        txtAddress.getText(),
-                        txtContactNumber.getText(),
-                        txtJobRole.getText(),
-                        basicSalary
-                );
-                boolean isSave = employeeModel.saveEmployee(employeedto);
-                if (isSave) {
-                    clearFields();
-                    new Alert(Alert.AlertType.INFORMATION, "Employee saved successfully").show();
-                } else {
-                    new Alert(Alert.AlertType.INFORMATION, "Employee saved Failed").show();
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Error saving employee").show();
-            }
-        } else {
-            new Alert(Alert.AlertType.ERROR, "Please enter valid data for Name, Contact Number, and Basic Salary.").show();
+        if (!isValidName) {
+            if (showDialog) new Alert(Alert.AlertType.ERROR, "Invalid Name: Name should contain only letters and spaces.").show();
+            return false;
+        }
+        if (!isValidContact) {
+            if (showDialog) new Alert(Alert.AlertType.ERROR, "Invalid Contact Number: Must be 10 digits starting with '0'.").show();
+            return false;
+        }
+        if (!isValidSalary) {
+            if (showDialog) new Alert(Alert.AlertType.ERROR, "Invalid Basic Salary: Must be a positive number with up to 2 decimal places.").show();
+            return false;
+        }
+
+        return true;
+    }
+
+    // Applies validation styles without showing alerts, for real-time feedback
+    private void applyValidationStyles() {
+        txtName.setStyle(txtName.getText().trim().matches(namePattern) ? "-fx-border-color: blue" : "-fx-border-color: red");
+        txtContactNumber.setStyle(txtContactNumber.getText().trim().matches(phonePattern) ? "-fx-border-color: blue" : "-fx-border-color: red");
+        txtBasicSalary.setStyle(txtBasicSalary.getText().trim().matches(salaryPattern) ? "-fx-border-color: blue" : "-fx-border-color: red");
+
+        // Clear red border if field becomes empty (but required fields will still prevent save/update)
+        if (txtName.getText().trim().isEmpty()) txtName.setStyle("");
+        if (txtContactNumber.getText().trim().isEmpty()) txtContactNumber.setStyle("");
+        if (txtBasicSalary.getText().trim().isEmpty()) txtBasicSalary.setStyle("");
+    }
+
+
+    public void btnSaveOnAction(ActionEvent actionEvent) {
+        if (!validateInputFields(true)) { // Show alerts for invalid input
+            return;
+        }
+
+        try {
+            BigDecimal basicSalary = new BigDecimal(txtBasicSalary.getText().trim());
+            Employeedto employeedto = new Employeedto(
+                    txtEmployeeId.getText(),
+                    txtName.getText().trim(),
+                    txtAddress.getText().trim(),
+                    txtContactNumber.getText().trim(),
+                    txtJobRole.getText().trim(),
+                    basicSalary
+            );
+            employeeBO.saveEmployee(employeedto); // Use BO
+            new Alert(Alert.AlertType.INFORMATION, "Employee saved successfully").show();
+            clearFields();
+            loadTable(); // Reload table after save
+            loadNextId(); // Load next ID after save
+            updateButtonStatesAndStyles(); // Re-evaluate button states
+        } catch (DuplicateException e) {
+            new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Error saving employee: " + e.getMessage()).show();
         }
     }
 
     private void clearFields() throws SQLException {
-        txtName.setText("");
-        txtAddress.setText("");
-        txtContactNumber.setText("");
-        txtJobRole.setText("");
-        txtBasicSalary.setText("");
+        txtName.clear();
+        txtAddress.clear();
+        txtContactNumber.clear();
+        txtJobRole.clear();
+        txtBasicSalary.clear();
         loadNextId();
-        disableButtons(true);
-        Platform.runLater(() -> {
-            txtEmployeeId.setText(txtEmployeeId.getText());
-            System.out.println("UI refreshed with ID: " + txtEmployeeId.getText());
-        });
-        loadTable();
+        tblEmployees.getSelectionModel().clearSelection(); // Clear table selection
+        updateButtonStatesAndStyles(); // Reset button states and styles
     }
 
     private void loadNextId() throws SQLException {
         try {
-            String nextId = employeeModel.getNextId();
+            String nextId = employeeBO.getNextId(); // Use BO
             txtEmployeeId.setText(nextId);
             txtEmployeeId.setEditable(false);
-            System.out.println("DEBUG: Next ID retrieved: " + nextId);
         } catch (SQLException e) {
-            System.err.println("ERROR in loadNextId: " + e.getMessage());
-            e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Error loading next ID").show();
+            new Alert(Alert.AlertType.ERROR, "Error loading next ID: " + e.getMessage()).show();
+            txtEmployeeId.setText("E001"); // Fallback
+            txtEmployeeId.setEditable(false);
         }
     }
 
     public void btnUpdateOnAction(ActionEvent actionEvent) {
+        if (!validateInputFields(true)) { // Show alerts for invalid input
+            return;
+        }
+
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Confirmation");
         alert.setHeaderText("Update Employee");
@@ -201,38 +266,27 @@ public class EmployeeController implements Initializable {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            String name = txtName.getText();
-            String contactNumber = txtContactNumber.getText();
-            String basicSalaryStr = txtBasicSalary.getText();
-
-            boolean isValidName = name.matches(namePattern);
-            boolean isValidContact = contactNumber.matches(phonePattern);
-            boolean isValidSalary = basicSalaryStr.matches(salaryPattern);
-
-            if(isValidName && isValidContact && isValidSalary) {
-                try {
-                    BigDecimal basicSalary = new BigDecimal(basicSalaryStr);
-                    Employeedto employeedto = new Employeedto(
-                            txtEmployeeId.getText(),
-                            txtName.getText(),
-                            txtAddress.getText(),
-                            txtContactNumber.getText(),
-                            txtJobRole.getText(),
-                            basicSalary
-                    );
-                    boolean isUpdate = employeeModel.updateEmployee(employeedto);
-                    if (isUpdate) {
-                        clearFields();
-                        new Alert(Alert.AlertType.INFORMATION, "Employee updated successfully").show();
-                    } else {
-                        new Alert(Alert.AlertType.INFORMATION, "Employee update Failed").show();
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    new Alert(Alert.AlertType.ERROR, "Error updating employee").show();
-                }
-            } else {
-                new Alert(Alert.AlertType.ERROR, "Please enter valid data for Name, Contact Number, and Basic Salary.").show();
+            try {
+                BigDecimal basicSalary = new BigDecimal(txtBasicSalary.getText().trim());
+                Employeedto employeedto = new Employeedto(
+                        txtEmployeeId.getText(),
+                        txtName.getText().trim(),
+                        txtAddress.getText().trim(),
+                        txtContactNumber.getText().trim(),
+                        txtJobRole.getText().trim(),
+                        basicSalary
+                );
+                employeeBO.updateEmployee(employeedto); // Use BO
+                new Alert(Alert.AlertType.INFORMATION, "Employee updated successfully").show();
+                clearFields();
+                loadTable();
+                loadNextId();
+                updateButtonStatesAndStyles(); // Re-evaluate button states
+            } catch (NotFoundException | DuplicateException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
+            } catch (Exception e) {
+                e.printStackTrace();
+                new Alert(Alert.AlertType.ERROR, "Error updating employee: " + e.getMessage()).show();
             }
         }
     }
@@ -247,16 +301,21 @@ public class EmployeeController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String id = txtEmployeeId.getText();
             try {
-                boolean isDelete = employeeModel.deleteEmployee(new Employeedto(id));
-                if (isDelete) {
-                    clearFields();
+                boolean isDeleted = employeeBO.deleteEmployee(id); // Use BO
+                if (isDeleted) {
                     new Alert(Alert.AlertType.INFORMATION,"Employee deleted successfully").show();
+                    clearFields();
+                    loadTable();
+                    loadNextId();
+                    updateButtonStatesAndStyles(); // Re-evaluate button states
                 } else {
                     new Alert(Alert.AlertType.INFORMATION,"Employee delete Failed").show();
                 }
+            } catch (NotFoundException | InUseException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR,"Error deleting employee").show();
+                new Alert(Alert.AlertType.ERROR,"An unexpected error occurred during delete: " + e.getMessage()).show();
             }
         }
     }
@@ -268,35 +327,23 @@ public class EmployeeController implements Initializable {
     @FXML
     void tableColumnOnClicked(MouseEvent event) {
         Employeedto employeedto = tblEmployees.getSelectionModel().getSelectedItem();
-        btnSave.setDisable(true);
         if(employeedto != null) {
             txtEmployeeId.setText(employeedto.getEmployeeId());
             txtName.setText(employeedto.getName());
             txtAddress.setText(employeedto.getAddress());
             txtContactNumber.setText(employeedto.getContactNumber());
             txtJobRole.setText(employeedto.getJobRole());
-            txtBasicSalary.setText(employeedto.getBasicSalary().toPlainString()); // Convert BigDecimal to String for TextField
-            disableButtons(false);
+            txtBasicSalary.setText(employeedto.getBasicSalary().toPlainString());
+            updateButtonStatesAndStyles(); // Update button states based on selection
         }
     }
 
-    public void txtNameChange(KeyEvent keyEvent) {
-        String name = txtName.getText();
-        boolean isValidName = name.matches(namePattern);
-        txtName.setStyle(isValidName ? "-fx-border-color: blue" : "-fx-border-color: red");
-    }
-
-    public void txtContactChange(KeyEvent keyEvent) {
-        String contactNumber = txtContactNumber.getText();
-        boolean isValidContact = contactNumber.matches(phonePattern);
-        txtContactNumber.setStyle(isValidContact ? "-fx-border-color: blue" : "-fx-border-color: red");
-    }
-
-    public void txtBasicSalaryChange(KeyEvent keyEvent) {
-        String salary = txtBasicSalary.getText();
-        boolean isValidSalary = salary.matches(salaryPattern);
-        txtBasicSalary.setStyle(isValidSalary ? "-fx-border-color: blue" : "-fx-border-color: red");
-    }
+    // These methods now just call the central updateButtonStatesAndStyles()
+    public void txtNameChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); }
+    public void txtContactChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); }
+    public void txtBasicSalaryChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); }
+    public void txtAddressChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); } // Added for address
+    public void txtJobRoleChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); } // Added for jobRole
 
     @FXML
     void searchEmployee(KeyEvent event) {

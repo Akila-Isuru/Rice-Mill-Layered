@@ -1,13 +1,16 @@
 package lk.ijse.gdse74.mytest2.responsive.bo.util;
 
 import lk.ijse.gdse74.mytest2.responsive.dto.Customersdto;
-import lk.ijse.gdse74.mytest2.responsive.dto.FarmerDTO; // Import FarmerDTO
-import lk.ijse.gdse74.mytest2.responsive.dto.MachineMaintenancedto;
+import lk.ijse.gdse74.mytest2.responsive.dto.Employeedto; // New import
+import lk.ijse.gdse74.mytest2.responsive.dto.FarmerDTO;
 import lk.ijse.gdse74.mytest2.responsive.dto.Suppliersdto;
+
 import lk.ijse.gdse74.mytest2.responsive.entity.Customer;
-import lk.ijse.gdse74.mytest2.responsive.entity.Farmer; // Import Farmer entity
-import lk.ijse.gdse74.mytest2.responsive.entity.MachineMaintenance;
+import lk.ijse.gdse74.mytest2.responsive.entity.Employee; // New import
+import lk.ijse.gdse74.mytest2.responsive.entity.Farmer;
 import lk.ijse.gdse74.mytest2.responsive.entity.Supplier;
+
+import java.math.BigDecimal; // Import for BigDecimal
 
 public class EntityDTOConverter {
 
@@ -31,8 +34,6 @@ public class EntityDTOConverter {
         );
     }
 
-    // --- New methods for Farmer ---
-
     public FarmerDTO getFarmerDTO(Farmer farmer) {
         return new FarmerDTO(
                 farmer.getFarmerId(),
@@ -50,24 +51,48 @@ public class EntityDTOConverter {
                 dto.getAddress()
         );
     }
+
     public Suppliersdto getSuppliersdto(Supplier supplier) {
         return new Suppliersdto(
                 supplier.getSupplierId(),
                 supplier.getName(),
-                supplier.getCotactNumber(), // Changed to getCotactNumber
+                supplier.getCotactNumber(),
                 supplier.getAddress(),
                 supplier.getEmail()
         );
     }
+
     public Supplier getSupplier(Suppliersdto dto) {
         return new Supplier(
                 dto.getSupplierId(),
                 dto.getName(),
-                dto.getCotactNumber(), // Changed to getCotactNumber
+                dto.getCotactNumber(),
                 dto.getAddress(),
                 dto.getEmail()
         );
     }
 
+    // --- New methods for Employee ---
 
+    public Employeedto getEmployeedto(Employee employee) {
+        return new Employeedto(
+                employee.getEmployeeId(),
+                employee.getName(),
+                employee.getAddress(),
+                employee.getContactNumber(),
+                employee.getJobRole(),
+                employee.getBasicSalary()
+        );
+    }
+
+    public Employee getEmployee(Employeedto dto) {
+        return new Employee(
+                dto.getEmployeeId(),
+                dto.getName(),
+                dto.getAddress(),
+                dto.getContactNumber(),
+                dto.getJobRole(),
+                dto.getBasicSalary()
+        );
+    }
 }
