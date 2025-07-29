@@ -13,6 +13,7 @@ import lk.ijse.gdse74.mytest2.responsive.dto.WasteManagementdto;
 import lk.ijse.gdse74.mytest2.responsive.model.WasteManagementModel;
 import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel;
 
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.ArrayList;
 import java.sql.Date;
@@ -300,7 +301,7 @@ public class WasteManagementController implements Initializable {
         try {
             MillingProcessdto millingProcess = MillingProcessModel.getMillingProcessByMillingId(millingId);
             if (millingProcess != null) {
-                double quantity = 0.0;
+                BigDecimal quantity = BigDecimal.valueOf(0.0);
                 switch (wasteType) {
                     case "Husk":
                         quantity = millingProcess.getHusk();
@@ -314,13 +315,13 @@ public class WasteManagementController implements Initializable {
                     case "Stones":
                     case "Dust":
                     case "Other":
-                        quantity = 0.0;
+                        quantity = BigDecimal.valueOf(0.0);
                         break;
                     default:
-                        quantity = 0.0;
+                        quantity = BigDecimal.valueOf(0.0);
                         break;
                 }
-                txtQuantity.setText(String.valueOf((int) quantity));
+                txtQuantity.setText(String.valueOf((BigDecimal) quantity));
             } else {
                 txtQuantity.clear();
                 new Alert(Alert.AlertType.WARNING, "Milling process details not found for selected Milling ID.").show();

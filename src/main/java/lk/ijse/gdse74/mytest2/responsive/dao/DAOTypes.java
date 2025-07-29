@@ -4,5 +4,7 @@ public enum DAOTypes {
     CUSTOMER,
     FARMER,
     SUPPLIER,
-    EMPLOYEE // New entry
+    EMPLOYEE,
+    RAW_PADDY ,
+    //MILLING_PROCESS// New entry
 }

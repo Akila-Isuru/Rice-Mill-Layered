@@ -89,4 +89,9 @@ public class FarmerBOImpl implements FarmerBO {
     public String getNextId() throws SQLException {
         return farmerDAO.getNextId();
     }
+
+    @Override
+    public List<String> getAllFarmerIds() throws SQLException {
+        return farmerDAO.getAllIds();
+    }
 }

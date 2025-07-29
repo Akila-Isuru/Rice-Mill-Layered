@@ -1,9 +1,13 @@
 package lk.ijse.gdse74.mytest2.responsive.dao;
 
+//import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.MillingProcessBOImpl;
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.CustomerDAOImpl;
-import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.EmployeeDAOImpl; // New import
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.EmployeeDAOImpl;
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.FarmerDAOImpl;
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.RawPaddyDAOImpl; // New import
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.SupplierDAOImpl;
+
+//import static lk.ijse.gdse74.mytest2.responsive.bo.BOTypes.MILLING_PROCESS;
 
 public class DAOFactory {
     private static DAOFactory daoFactory;
@@ -21,7 +25,10 @@ public class DAOFactory {
             case CUSTOMER -> (T) new CustomerDAOImpl();
             case FARMER -> (T) new FarmerDAOImpl();
             case SUPPLIER -> (T) new SupplierDAOImpl();
-            case EMPLOYEE -> (T) new EmployeeDAOImpl(); // New case
+            case EMPLOYEE -> (T) new EmployeeDAOImpl();
+            case RAW_PADDY -> (T) new RawPaddyDAOImpl();
+          //  case MILLING_PROCESS -> (T)new MillingProcessBOImpl();// New case
+// New case
         };
     }
 }

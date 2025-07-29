@@ -1,81 +1,81 @@
 package lk.ijse.gdse74.mytest2.responsive.dao.custom.impl;
 
 import lk.ijse.gdse74.mytest2.responsive.dao.SQLUtill;
-import lk.ijse.gdse74.mytest2.responsive.dao.custom.MillingProcessDAO; // Corrected import
-import lk.ijse.gdse74.mytest2.responsive.entity.MillingProcess; // Import the new entity
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.MillingProcessDAO;
+import lk.ijse.gdse74.mytest2.responsive.entity.MillingProcess;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal; // Import for BigDecimal
 
 public class MillingProcessDAOImpl implements MillingProcessDAO {
 
     @Override
     public List<MillingProcess> getAll() throws SQLException {
-        String sql = "SELECT * FROM milling_process";
-        ResultSet rs = SQLUtill.execute(sql);
-
-        List<MillingProcess> list = new ArrayList<>();
+        ResultSet rs = SQLUtill.execute("SELECT * FROM milling_process");
+        List<MillingProcess> processes = new ArrayList<>();
         while (rs.next()) {
-            list.add(new MillingProcess(
+            processes.add(new MillingProcess(
                     rs.getString("milling_id"),
                     rs.getString("paddy_id"),
                     rs.getTime("start_time"),
                     rs.getTime("end_time"),
-                    rs.getDouble("milled_quantity"),
-                    rs.getDouble("broken_rice"),
-                    rs.getDouble("husk_kg"), // Use database column name
-                    rs.getDouble("bran_kg")  // Use database column name
+                    rs.getBigDecimal("milled_quantity"),
+                    rs.getBigDecimal("broken_rice"),
+                    rs.getBigDecimal("husk_kg"), // Use DB column name for ResultSet
+                    rs.getBigDecimal("bran_kg")  // Use DB column name for ResultSet
             ));
         }
-        return list;
+        return processes;
     }
 
     @Override
     public String getNextId() throws SQLException {
-        String sql = "SELECT milling_id FROM milling_process ORDER BY milling_id DESC LIMIT 1";
-        ResultSet rs = SQLUtill.execute(sql);
-
+        ResultSet rs = SQLUtill.execute("SELECT milling_id FROM milling_process ORDER BY milling_id DESC LIMIT 1");
+        char tableChar = 'M'; // For Milling ID
         if (rs.next()) {
             String lastId = rs.getString(1);
-            int lastNumber = Integer.parseInt(lastId.substring(1)); // Assuming format like M001
-            return String.format("M%03d", lastNumber + 1);
+            // Extract numbers from the ID (e.g., M001 -> 1)
+            String lastIdNumberString = lastId.replaceAll("[^\\d]", "");
+            if (lastIdNumberString.isEmpty()) {
+                return tableChar + "001"; // Fallback if no numbers found
+            }
+            int lastIdNumber = Integer.parseInt(lastIdNumberString);
+            int nextIdNumber = lastIdNumber + 1;
+            return String.format(tableChar + "%03d", nextIdNumber);
         }
-        return "M001";
+        return tableChar + "001"; // Initial ID if no records exist
     }
 
     @Override
     public boolean save(MillingProcess entity) throws SQLException {
-        String sql = "INSERT INTO milling_process (milling_id, paddy_id, start_time, end_time, milled_quantity, broken_rice, husk_kg, bran_kg) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         return SQLUtill.execute(
-                sql,
+                "INSERT INTO milling_process (milling_id, paddy_id, start_time, end_time, milled_quantity, broken_rice, husk_kg, bran_kg) VALUES (?,?,?,?,?,?,?,?)",
                 entity.getMillingId(),
                 entity.getPaddyId(),
                 entity.getStartTime(),
                 entity.getEndTime(),
                 entity.getMilledQuantity(),
                 entity.getBrokenRice(),
-                entity.getHusk_kg(), // Use entity field name matching DB
-                entity.getBran_kg()  // Use entity field name matching DB
+                entity.getHuskKg(), // Use Entity's getter for 'husk_kg'
+                entity.getBranKg()  // Use Entity's getter for 'bran_kg'
         );
     }
 
     @Override
     public boolean update(MillingProcess entity) throws SQLException {
-        String sql = "UPDATE milling_process SET paddy_id=?, start_time=?, end_time=?, " +
-                "milled_quantity=?, broken_rice=?, husk_kg=?, bran_kg=? " +
-                "WHERE milling_id=?";
         return SQLUtill.execute(
-                sql,
+                "UPDATE milling_process SET paddy_id=?, start_time=?, end_time=?, milled_quantity=?, broken_rice=?, husk_kg=?, bran_kg=? WHERE milling_id =?",
                 entity.getPaddyId(),
                 entity.getStartTime(),
                 entity.getEndTime(),
                 entity.getMilledQuantity(),
                 entity.getBrokenRice(),
-                entity.getHusk_kg(), // Use entity field name matching DB
-                entity.getBran_kg(),  // Use entity field name matching DB
+                entity.getHuskKg(), // Use Entity's getter for 'husk_kg'
+                entity.getBranKg(),  // Use Entity's getter for 'bran_kg'
                 entity.getMillingId()
         );
     }
@@ -88,11 +88,9 @@ public class MillingProcessDAOImpl implements MillingProcessDAO {
 
     @Override
     public List<String> getAllIds() throws SQLException {
-        String sql = "SELECT milling_id FROM milling_process ORDER BY milling_id";
-        ResultSet rs = SQLUtill.execute(sql);
-
         List<String> ids = new ArrayList<>();
-        while (rs.next()) {
+        ResultSet rs = SQLUtill.execute("SELECT milling_id FROM milling_process");
+        while(rs.next()){
             ids.add(rs.getString("milling_id"));
         }
         return ids;
@@ -100,19 +98,17 @@ public class MillingProcessDAOImpl implements MillingProcessDAO {
 
     @Override
     public Optional<MillingProcess> findById(String id) throws SQLException {
-        String sql = "SELECT * FROM milling_process WHERE milling_id = ?";
-        ResultSet rs = SQLUtill.execute(sql, id);
-
+        ResultSet rs = SQLUtill.execute("SELECT * FROM milling_process WHERE milling_id = ?", id);
         if (rs.next()) {
             return Optional.of(new MillingProcess(
                     rs.getString("milling_id"),
                     rs.getString("paddy_id"),
                     rs.getTime("start_time"),
                     rs.getTime("end_time"),
-                    rs.getDouble("milled_quantity"),
-                    rs.getDouble("broken_rice"),
-                    rs.getDouble("husk_kg"),
-                    rs.getDouble("bran_kg")
+                    rs.getBigDecimal("milled_quantity"),
+                    rs.getBigDecimal("broken_rice"),
+                    rs.getBigDecimal("husk_kg"),
+                    rs.getBigDecimal("bran_kg")
             ));
         }
         return Optional.empty();
@@ -120,25 +116,22 @@ public class MillingProcessDAOImpl implements MillingProcessDAO {
 
     @Override
     public List<String> getAllPaddyIds() throws SQLException {
-        // This might need to get unique paddy IDs from a 'paddy' table,
-        // or just existing ones in milling_process.
-        // Assuming it's meant to get unique paddy IDs that exist in the paddy table
-        // For now, I'll use the existing query which gets paddy_ids from milling_process.
-        // If there's a separate `paddy` table and you want IDs from there, adjust this query.
-        String sql = "SELECT DISTINCT paddy_id FROM milling_process"; // Using DISTINCT if needed
-        ResultSet rs = SQLUtill.execute(sql);
-
-        List<String> ids = new ArrayList<>();
+        // This method fetches paddy IDs from the 'raw_paddy' table,
+        // as these are the raw materials available for milling.
+        List<String> paddyIds = new ArrayList<>();
+        // Assuming 'raw_paddy' table has a 'paddy_id' column
+        ResultSet rs = SQLUtill.execute("SELECT paddy_id FROM raw_paddy");
         while (rs.next()) {
-            ids.add(rs.getString("paddy_id"));
+            paddyIds.add(rs.getString("paddy_id"));
         }
-        return ids;
+        return paddyIds;
     }
 
     @Override
     public boolean isPaddyIdExistsInProcess(String paddyId) throws SQLException {
-        String sql = "SELECT COUNT(*) FROM milling_process WHERE paddy_id = ?";
-        ResultSet rs = SQLUtill.execute(sql, paddyId);
+        // This checks if a specific paddy_id is *already recorded* in the milling_process table.
+        // This is useful to prevent a single batch of paddy from being milled multiple times.
+        ResultSet rs = SQLUtill.execute("SELECT COUNT(*) FROM milling_process WHERE paddy_id = ?", paddyId);
         return rs.next() && rs.getInt(1) > 0;
     }
 }

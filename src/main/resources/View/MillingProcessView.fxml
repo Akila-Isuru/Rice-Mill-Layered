@@ -15,97 +15,97 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<AnchorPane prefHeight="850.0" prefWidth="900.0" style="-fx-background-color: #f5f9fc;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="lk.ijse.gdse74.mytest2.responsive.Controller.MillingProcessController">
+<AnchorPane prefHeight="750.0" prefWidth="900.0" style="-fx-background-color: #f5f9fc;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="lk.ijse.gdse74.mytest2.responsive.Controller.MillingProcessController">
    <children>
-      <Label layoutX="20.0" layoutY="20.0" style="-fx-text-fill: #2c3e50;" text="Milling Management">
+      <Label layoutX="20.0" layoutY="20.0" style="-fx-text-fill: #2c3e50;" text="Milling Process Management">
          <font>
             <Font name="System Bold" size="22.0" />
          </font>
       </Label>
-
-      <VBox layoutX="50.0" layoutY="60.0" prefHeight="350.0" prefWidth="800.0" spacing="8.0" style="-fx-background-color: white; -fx-background-radius: 5; -fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+      <VBox layoutX="50.0" layoutY="60.0" prefHeight="380.0" prefWidth="800.0" spacing="8.0" style="-fx-background-color: white; -fx-background-radius: 5; -fx-padding: 15; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);">
          <children>
             <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Milling ID" />
             <TextField fx:id="txtMilling_id" editable="false" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" />
-
             <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Paddy ID" />
-            <ComboBox fx:id="cmbPaddyId" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" />
-
+            <ComboBox fx:id="cmbPaddyId" prefWidth="780.0" promptText="Select Paddy ID" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" />
             <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Start Time" />
-            <Label fx:id="lblStartTime" style="-fx-font-size: 14; -fx-font-weight: bold;" />
-
+            <Label fx:id="lblStartTime" style="-fx-text-fill: #2c3e50;" text="00:00:00">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
             <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="End Time" />
-            <HBox spacing="5.0">
-               <Spinner fx:id="endHourSpinner" prefWidth="70.0" style="-fx-font-size: 14;" />
-               <Label style="-fx-font-size: 14; -fx-padding: 5 0 0 0;" text=":" />
-               <Spinner fx:id="endMinuteSpinner" prefWidth="70.0" style="-fx-font-size: 14;" />
-               <Label style="-fx-font-size: 14; -fx-padding: 5 0 0 0;" text=":" />
-               <Spinner fx:id="endSecondSpinner" prefWidth="70.0" style="-fx-font-size: 14;" />
+            <HBox alignment="CENTER_LEFT" prefHeight="30.0" prefWidth="200.0" spacing="5.0">
+               <children>
+                  <Spinner fx:id="endHourSpinner" editable="true" prefWidth="70.0" />
+                  <Label text=":" />
+                  <Spinner fx:id="endMinuteSpinner" editable="true" prefWidth="70.0" />
+                  <Label text=":" />
+                  <Spinner fx:id="endSecondSpinner" editable="true" prefWidth="70.0" />
+                  <Label fx:id="lblDuration" style="-fx-text-fill: black;" text="Duration: 00:00:00" HBox.hgrow="ALWAYS">
+                     <font>
+                        <Font size="12.0" />
+                     </font>
+                  </Label>
+               </children>
             </HBox>
-
-            <Label fx:id="lblDuration" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-padding: 5 0 0 0;" text="Duration: 00:00:00" />
-
             <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Milled Quantity (kg)" />
-            <TextField fx:id="txtMilledQuantity" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" />
-
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Broken Rice (kg)" />
-            <TextField fx:id="txtBrokenRice" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" />
-
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Husk (kg)" />
-            <TextField fx:id="txtHusk" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" />
-
-            <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Bran (kg)" />
-            <TextField fx:id="txtBran" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" />
+            <TextField fx:id="txtMilledQuantity" promptText="Enter milled quantity in kg" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" />
+            <HBox alignment="CENTER_LEFT" prefHeight="30.0" prefWidth="200.0" spacing="10.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Broken Rice (kg)" />
+                  <TextField fx:id="txtBrokenRice" promptText="Calculated broken rice" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" prefHeight="30.0" prefWidth="200.0" spacing="10.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Husk (kg)" />
+                  <TextField fx:id="txtHusk" promptText="Calculated husk" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" HBox.hgrow="ALWAYS" />
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-fill: #34495e; -fx-font-size: 12;" text="Bran (kg)" />
+                  <TextField fx:id="txtBran" promptText="Calculated bran" style="-fx-background-radius: 3; -fx-border-color: #bdc3c7; -fx-border-radius: 3;" HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
+            <Button fx:id="btnOverride" mnemonicParsing="false" onAction="#toggleOverride" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-background-radius: 5;" text="Override Byproducts">
+               <VBox.margin>
+                  <Insets top="5.0" />
+               </VBox.margin>
+            </Button>
          </children>
          <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
          </padding>
       </VBox>
-
-      <ButtonBar layoutX="53.0" layoutY="583.0" prefHeight="40.0" prefWidth="800.0" style="-fx-background-color: transparent; -fx-padding: 10 0 10 0;">
+      <ButtonBar layoutX="50.0" layoutY="460.0" prefHeight="40.0" prefWidth="800.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0">
          <buttons>
-            <Button fx:id="btnSave" minWidth="80.0" mnemonicParsing="false" onAction="#btnSaveOnAction" prefHeight="30.0" style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-background-radius: 3;" text="Save">
-               <font>
-                  <Font size="12.0" />
-               </font>
-            </Button>
-            <Button fx:id="btnUpdate" minWidth="80.0" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefHeight="30.0" style="-fx-background-color: #2980b9; -fx-text-fill: white; -fx-background-radius: 3;" text="Update">
-               <font>
-                  <Font size="12.0" />
-               </font>
-            </Button>
-            <Button fx:id="btnDelete" minWidth="80.0" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefHeight="30.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 3;" text="Delete">
-               <font>
-                  <Font size="12.0" />
-               </font>
-            </Button>
-            <Button fx:id="btnClear" minWidth="80.0" mnemonicParsing="false" onAction="#btnClearOnAction" prefHeight="30.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-background-radius: 3;" text="Clear">
-               <font>
-                  <Font size="12.0" />
-               </font>
-            </Button>
-            <Button fx:id="btnOverride" minWidth="80.0" mnemonicParsing="false" onAction="#toggleOverride" prefHeight="30.0" style="-fx-background-color: #9b59b6; -fx-text-fill: white; -fx-background-radius: 3;" text="Override">
-               <font>
-                  <Font size="12.0" />
-               </font>
-            </Button>
+            <Button fx:id="btnSave" mnemonicParsing="false" onAction="#btnSaveOnAction" prefWidth="80.0" style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-background-radius: 5;" text="Save" />
+            <Button fx:id="btnUpdate" mnemonicParsing="false" onAction="#btnUpdateOnAction" prefWidth="80.0" style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-background-radius: 5;" text="Update" />
+            <Button fx:id="btnDelete" mnemonicParsing="false" onAction="#btnDeleteOnAction" prefWidth="80.0" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 5;" text="Delete" />
+            <Button fx:id="btnClear" mnemonicParsing="false" onAction="#btnClearOnAction" prefWidth="80.0" style="-fx-background-color: #f39c12; -fx-text-fill: white; -fx-background-radius: 5;" text="Clear" />
          </buttons>
       </ButtonBar>
-
-      <TableView fx:id="table" layoutX="53.0" layoutY="628.0" onMouseClicked="#tableColumnOnClicked" prefHeight="160.0" prefWidth="800.0" style="-fx-background-radius: 5; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.1), 5, 0, 0, 2);">
+      <HBox alignment="CENTER_LEFT" layoutX="50.0" layoutY="510.0" prefHeight="30.0" prefWidth="800.0" spacing="10.0">
+         <children>
+            <Label text="Search:">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <TextField fx:id="txtSearch" onKeyReleased="#searchRawPaddy" promptText="Search by ID, Paddy ID, Milled Qty" HBox.hgrow="ALWAYS" />
+            <Button mnemonicParsing="false" onAction="#clearSearch" text="Clear Search" />
+            <Label fx:id="lblMillingProcessCount" text="Milling Processes: 0" />
+         </children>
+      </HBox>
+      <TableView fx:id="table" layoutX="50.0" layoutY="550.0" prefHeight="190.0" prefWidth="800.0" onMouseClicked="#tableColumnOnClicked" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="50.0" AnchorPane.rightAnchor="50.0">
          <columns>
-            <TableColumn fx:id="colMilling_id" prefWidth="100.0" style="-fx-font-size: 12;" text="Milling ID" />
-            <TableColumn fx:id="colPaddy_id" prefWidth="100.0" style="-fx-font-size: 12;" text="Paddy ID" />
-            <TableColumn fx:id="colStart_time" prefWidth="100.0" style="-fx-font-size: 12;" text="Start Time" />
-            <TableColumn fx:id="colEnd_time" prefWidth="100.0" style="-fx-font-size: 12;" text="End Time" />
-            <TableColumn fx:id="colmilled_Quantity" prefWidth="120.0" style="-fx-font-size: 12;" text="Milled (kg)" />
-            <TableColumn fx:id="colBroken_rice" prefWidth="100.0" style="-fx-font-size: 12;" text="Broken (kg)" />
-            <TableColumn fx:id="colHusk" prefWidth="90.0" style="-fx-font-size: 12;" text="Husk (kg)" />
-            <TableColumn fx:id="colBran_rice" prefWidth="90.0" style="-fx-font-size: 12;" text="Bran (kg)" />
+            <TableColumn fx:id="colMilling_id" prefWidth="100.0" text="Milling ID" />
+            <TableColumn fx:id="colPaddy_id" prefWidth="100.0" text="Paddy ID" />
+            <TableColumn fx:id="colStart_time" prefWidth="100.0" text="Start Time" />
+            <TableColumn fx:id="colEnd_time" prefWidth="100.0" text="End Time" />
+            <TableColumn fx:id="colMilled_Quantity" prefWidth="120.0" text="Milled Quantity (kg)" />
+            <TableColumn fx:id="colBroken_rice" prefWidth="100.0" text="Broken Rice (kg)" />
+            <TableColumn fx:id="colHusk_kg" prefWidth="90.0" text="Husk (kg)" />
+            <TableColumn fx:id="colBran_kg" prefWidth="90.0" text="Bran (kg)" />
          </columns>
       </TableView>
    </children>
-   <padding>
-      <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-   </padding>
 </AnchorPane>

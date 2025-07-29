@@ -16,9 +16,9 @@ public class RawPaddyModel {
                     rs.getString("paddy_id"),
                     rs.getString("supplier_id"),
                     rs.getString("farmer_id"),
-                    rs.getDouble("quantity_kg"),
-                    rs.getDouble("moisture_level"),
-                    rs.getDouble("purchase_price_per_kg"),
+                    rs.getBigDecimal("quantity_kg"),
+                    rs.getBigDecimal("moisture_level"),
+                    rs.getBigDecimal("purchase_price_per_kg"),
                     rs.getDate("purchase_date")
             );
             paddys.add(paddy);

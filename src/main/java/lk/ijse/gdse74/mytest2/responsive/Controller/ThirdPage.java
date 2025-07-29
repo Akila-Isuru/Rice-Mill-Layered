@@ -46,19 +46,19 @@ public class ThirdPage {
     private void loadMillingData() {
         try {
             ArrayList<MillingProcessdto> allProcesses = MillingProcessModel.viewAllMillingProcess();
-            double totalMilled = calculateTotalMilled(allProcesses);
-            updateMillingLabel(totalMilled);
+          //  double totalMilled = calculateTotalMilled(allProcesses);
+           // updateMillingLabel(totalMilled);
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             todayMillingLabel.setText("Error loading data");
         }
     }
 
-    private double calculateTotalMilled(ArrayList<MillingProcessdto> processes) {
-        return processes.stream()
-                .mapToDouble(MillingProcessdto::getMilledQuantity)
-                .sum();
-    }
+//    private double calculateTotalMilled(ArrayList<MillingProcessdto> processes) {
+//        return processes.stream()
+//                .mapToDouble(MillingProcessdto::getMilledQuantity)
+//                .sum();
+//    }
 
     private void updateMillingLabel(double quantity) {
         todayMillingLabel.setText(String.format("%.2f Kg", quantity));

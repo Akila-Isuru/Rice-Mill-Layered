@@ -19,12 +19,12 @@ public class MillingProcessModel {
             list.add(new MillingProcessdto(
                     rs.getString("milling_id"),
                     rs.getString("paddy_id"),
-                    rs.getTime("start_time"),
-                    rs.getTime("end_time"),
-                    rs.getDouble("milled_quantity"),
-                    rs.getDouble("broken_rice"),
-                    rs.getDouble("husk_kg"),
-                    rs.getDouble("bran_kg")
+                    rs.getTime("start_time").toLocalTime(),
+                    rs.getTime("end_time").toLocalTime(),
+                    rs.getBigDecimal("milled_quantity"),
+                    rs.getBigDecimal("broken_rice"),
+                    rs.getBigDecimal("husk_kg"),
+                    rs.getBigDecimal("bran_kg")
             ));
         }
         return list;
@@ -39,12 +39,12 @@ public class MillingProcessModel {
             return new MillingProcessdto(
                     rs.getString("milling_id"),
                     rs.getString("paddy_id"),
-                    rs.getTime("start_time"),
-                    rs.getTime("end_time"),
-                    rs.getDouble("milled_quantity"),
-                    rs.getDouble("broken_rice"),
-                    rs.getDouble("husk_kg"),
-                    rs.getDouble("bran_kg")
+                    rs.getTime("start_time").toLocalTime(),
+                    rs.getTime("end_time").toLocalTime(),
+                    rs.getBigDecimal("milled_quantity"),
+                    rs.getBigDecimal("broken_rice"),
+                    rs.getBigDecimal("husk_kg"),
+                    rs.getBigDecimal("bran_kg")
             );
         }
         return null;

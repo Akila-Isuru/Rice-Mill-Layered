@@ -14,4 +14,6 @@ public interface FarmerBO extends SuperBO {
     void updateFarmer(FarmerDTO dto) throws SQLException, DuplicateException; // Added DuplicateException for update
     boolean deleteFarmer(String id) throws InUseException, Exception;
     String getNextId() throws SQLException;
+
+    List<String> getAllFarmerIds() throws SQLException;
 }

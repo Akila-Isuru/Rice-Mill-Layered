@@ -4,5 +4,7 @@ public enum BOTypes {
     CUSTOMER,
     FARMER,
     SUPPLIER,
-    EMPLOYEE // New entry
+    EMPLOYEE,
+    //MILLING_PROCESS,
+    RAW_PADDY // New entry
 }

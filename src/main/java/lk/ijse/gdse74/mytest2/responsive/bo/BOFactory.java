@@ -1,9 +1,7 @@
 package lk.ijse.gdse74.mytest2.responsive.bo;
 
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.CustomerBOImpl;
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.EmployeeBOImpl; // New import
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.FarmerBOImpl;
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.SupplierBOImpl;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.MillingProcessBO;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.*;
 
 public class BOFactory {
     private static BOFactory boFactory;
@@ -17,11 +15,13 @@ public class BOFactory {
 
     @SuppressWarnings("unchecked")
     public <T extends SuperBO> T getBO(BOTypes boType) {
-        return switch (boType) {
+        return (T) switch (boType) {
             case CUSTOMER -> (T) new CustomerBOImpl();
             case FARMER -> (T) new FarmerBOImpl();
             case SUPPLIER -> (T) new SupplierBOImpl();
-            case EMPLOYEE -> (T) new EmployeeBOImpl(); // New case
+            case EMPLOYEE -> (T) new EmployeeBOImpl();
+            case RAW_PADDY -> (T) new RawPaddyBOImpl();
+         //   case MILLING_PROCESS -> (T)new MillingProcessBOImpl();// New case
         };
     }
 }
