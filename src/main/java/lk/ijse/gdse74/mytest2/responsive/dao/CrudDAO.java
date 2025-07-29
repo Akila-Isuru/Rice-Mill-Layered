@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public interface CrudDAO<T> extends SuperDAO {
+public interface CrudDAO<T, S> extends SuperDAO {
     List<T> getAll() throws SQLException;
     String getNextId() throws SQLException;
     boolean save(T t) throws SQLException;

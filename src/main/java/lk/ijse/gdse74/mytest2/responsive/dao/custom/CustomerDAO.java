@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public interface CustomerDAO extends CrudDAO<Customer> {
+public interface CustomerDAO extends CrudDAO<Customer, String> {
     List<Customer> search(String text) throws SQLException;
     Optional<Customer> findCustomerByContactNumber(String contactNumber) throws SQLException;
     boolean existsCustomerByContactNumber(String contactNumber) throws SQLException;

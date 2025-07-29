@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 
-public interface FarmerDAO extends CrudDAO<Farmer> {
+public interface FarmerDAO extends CrudDAO<Farmer, String> {
     // Add any specific DAO methods for Farmer if needed, similar to CustomerDAO's search, findByContact, findByEmail
     List<Farmer> search(String text) throws SQLException;
     Optional<Farmer> findFarmerByContactNumber(String contactNumber) throws SQLException;

@@ -21,6 +21,7 @@ public class BOFactory {
             case SUPPLIER -> (T) new SupplierBOImpl();
             case EMPLOYEE -> (T) new EmployeeBOImpl();
             case RAW_PADDY -> (T) new RawPaddyBOImpl();
+            case USER -> (T) new UserBOImpl();
          //   case MILLING_PROCESS -> (T)new MillingProcessBOImpl();// New case
         };
     }

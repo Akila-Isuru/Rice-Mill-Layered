@@ -1,12 +1,13 @@
 package lk.ijse.gdse74.mytest2.responsive.bo.util;
 
 import lk.ijse.gdse74.mytest2.responsive.dto.*;
-
 import lk.ijse.gdse74.mytest2.responsive.entity.*;
 
 import java.math.BigDecimal; // Import BigDecimal
 import java.sql.Date;       // Import java.sql.Date for conversions
 import java.sql.Time;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EntityDTOConverter {
 
@@ -90,55 +91,92 @@ public class EntityDTOConverter {
         );
     }
 
-    // --- New methods for RawPaddy ---
     public RawPaddydto getRawPaddydto(RawPaddy rawPaddy) {
-        // Convert BigDecimal to double (loss of precision) if DTO requires double,
-        // or ensure DTO also uses BigDecimal
         return new RawPaddydto(
                 rawPaddy.getPaddyId(),
                 rawPaddy.getSupplierId(),
                 rawPaddy.getFarmerId(),
-                rawPaddy.getQuantityKg(),          // Now BigDecimal
-                rawPaddy.getMoistureLevel(),       // Now BigDecimal
-                rawPaddy.getPurchasePricePerKg(),  // Now BigDecimal
-                rawPaddy.getPurchaseDate()         // java.sql.Date -> java.util.Date (direct assignment works)
+                rawPaddy.getQuantityKg(),
+                rawPaddy.getMoistureLevel(),
+                rawPaddy.getPurchasePricePerKg(),
+                rawPaddy.getPurchaseDate()
         );
     }
 
     public RawPaddy getRawPaddy(RawPaddydto dto) {
-        // Convert double to BigDecimal if DTO uses double
         return new RawPaddy(
                 dto.getPaddyId(),
                 dto.getSupplierId(),
                 dto.getFarmerId(),
-                dto.getQuantity(),          // Now BigDecimal
-                dto.getMoisture(),          // Now BigDecimal
-                dto.getPurchasePrice(),     // Now BigDecimal
-                (Date) dto.getPurchaseDate() // java.util.Date -> java.sql.Date (requires cast if source is util.Date)
+                dto.getQuantity(),
+                dto.getMoisture(),
+                dto.getPurchasePrice(),
+                (Date) dto.getPurchaseDate()
         );
     }
+
     public MillingProcessdto getMillingProcessdto(MillingProcess millingProcess) {
         return new MillingProcessdto(
                 millingProcess.getMillingId(),
                 millingProcess.getPaddyId(),
-                millingProcess.getStartTime() != null ? millingProcess.getStartTime().toLocalTime() : null, // Convert sql.Time to LocalTime
-                millingProcess.getEndTime() != null ? millingProcess.getEndTime().toLocalTime() : null,     // Convert sql.Time to LocalTime
+                millingProcess.getStartTime() != null ? millingProcess.getStartTime().toLocalTime() : null,
+                millingProcess.getEndTime() != null ? millingProcess.getEndTime().toLocalTime() : null,
                 millingProcess.getMilledQuantity(),
                 millingProcess.getBrokenRice(),
-                millingProcess.getHuskKg(), // Map huskKg (Entity) to husk (DTO)
-                millingProcess.getBranKg()  // Map branKg (Entity) to bran (DTO)
+                millingProcess.getHuskKg(),
+                millingProcess.getBranKg()
         );
     }
+
     public MillingProcess getMillingProcess(MillingProcessdto millingProcessdto) {
         return new MillingProcess(
                 millingProcessdto.getMillingId(),
                 millingProcessdto.getPaddyId(),
-                millingProcessdto.getStartTime() != null ? Time.valueOf(millingProcessdto.getStartTime()) : null, // Convert LocalTime to sql.Time
-                millingProcessdto.getEndTime() != null ? Time.valueOf(millingProcessdto.getEndTime()) : null,     // Convert LocalTime to sql.Time
+                millingProcessdto.getStartTime() != null ? Time.valueOf(millingProcessdto.getStartTime()) : null,
+                millingProcessdto.getEndTime() != null ? Time.valueOf(millingProcessdto.getEndTime()) : null,
                 millingProcessdto.getMilledQuantity(),
                 millingProcessdto.getBrokenRice(),
-                millingProcessdto.getHusk(), // Map husk (DTO) to huskKg (Entity)
-                millingProcessdto.getBran()  // Map bran (DTO) to branKg (Entity)
+                millingProcessdto.getHusk(),
+                millingProcessdto.getBran()
         );
+    }
+
+    // --- New methods for Users ---
+    public Usersdto getUsersdto(User user) {
+        return new Usersdto(
+                user.getUserId(),
+                user.getName(),
+                user.getEmail(),
+                user.getPassword(), // Ensure password handling aligns with security practices (hashing)
+                user.getRole(),
+                user.getContactNumber()
+        );
+    }
+
+    public User getUser(Usersdto dto) {
+        return new User(
+                dto.getUser_id(),
+                dto.getName(),
+                dto.getEmail(),
+                dto.getRole(),
+                dto.getContact_number(),
+                dto.getPassword() // Ensure password handling aligns with security practices (hashing)
+        );
+    }
+
+    public List<Usersdto> toUsersdtoList(List<User> userList) {
+        List<Usersdto> dtoList = new ArrayList<>();
+        for (User user : userList) {
+            dtoList.add(getUsersdto(user));
+        }
+        return dtoList;
+    }
+
+    public List<User> toUserList(List<Usersdto> dtoList) {
+        List<User> userList = new ArrayList<>();
+        for (Usersdto dto : dtoList) {
+            userList.add(getUser(dto));
+        }
+        return userList;
     }
 }

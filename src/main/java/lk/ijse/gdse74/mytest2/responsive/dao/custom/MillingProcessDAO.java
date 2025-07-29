@@ -5,9 +5,8 @@ import lk.ijse.gdse74.mytest2.responsive.entity.MillingProcess;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.Optional;
 
-public interface MillingProcessDAO extends CrudDAO<MillingProcess> {
+public interface MillingProcessDAO extends CrudDAO<MillingProcess, String> {
     List<String> getAllPaddyIds() throws SQLException;
     boolean isPaddyIdExistsInProcess(String paddyId) throws SQLException;
     // CrudDAO already provides: getAll(), getNextId(), save(), update(), delete(), findById(), getAllIds()
