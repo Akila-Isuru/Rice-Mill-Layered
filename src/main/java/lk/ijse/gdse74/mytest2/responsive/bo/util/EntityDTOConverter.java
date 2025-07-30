@@ -3,8 +3,8 @@ package lk.ijse.gdse74.mytest2.responsive.bo.util;
 import lk.ijse.gdse74.mytest2.responsive.dto.*;
 import lk.ijse.gdse74.mytest2.responsive.entity.*;
 
-import java.math.BigDecimal; // Import BigDecimal
-import java.sql.Date;       // Import java.sql.Date for conversions
+import java.math.BigDecimal;
+import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
@@ -111,20 +111,22 @@ public class EntityDTOConverter {
                 dto.getQuantity(),
                 dto.getMoisture(),
                 dto.getPurchasePrice(),
-                (Date) dto.getPurchaseDate()
+                (Date) dto.getPurchaseDate() // Assuming DTO has java.util.Date and Entity expects java.sql.Date
         );
     }
 
+    // --- MillingProcess Conversions ---
     public MillingProcessdto getMillingProcessdto(MillingProcess millingProcess) {
         return new MillingProcessdto(
                 millingProcess.getMillingId(),
                 millingProcess.getPaddyId(),
+                // Convert java.sql.Time to java.time.LocalTime for DTO
                 millingProcess.getStartTime() != null ? millingProcess.getStartTime().toLocalTime() : null,
                 millingProcess.getEndTime() != null ? millingProcess.getEndTime().toLocalTime() : null,
                 millingProcess.getMilledQuantity(),
                 millingProcess.getBrokenRice(),
-                millingProcess.getHuskKg(),
-                millingProcess.getBranKg()
+                millingProcess.getHuskKg(), // Entity uses huskKg
+                millingProcess.getBranKg()  // Entity uses branKg
         );
     }
 
@@ -132,12 +134,13 @@ public class EntityDTOConverter {
         return new MillingProcess(
                 millingProcessdto.getMillingId(),
                 millingProcessdto.getPaddyId(),
+                // Convert java.time.LocalTime to java.sql.Time for Entity
                 millingProcessdto.getStartTime() != null ? Time.valueOf(millingProcessdto.getStartTime()) : null,
                 millingProcessdto.getEndTime() != null ? Time.valueOf(millingProcessdto.getEndTime()) : null,
                 millingProcessdto.getMilledQuantity(),
                 millingProcessdto.getBrokenRice(),
-                millingProcessdto.getHusk(),
-                millingProcessdto.getBran()
+                millingProcessdto.getHusk(), // DTO uses husk
+                millingProcessdto.getBran()  // DTO uses bran
         );
     }
 

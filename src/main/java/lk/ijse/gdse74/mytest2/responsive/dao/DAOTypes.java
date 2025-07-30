@@ -5,7 +5,7 @@ public enum DAOTypes {
     FARMER,
     SUPPLIER,
     EMPLOYEE,
-    RAW_PADDY ,
-    USER
-    //MILLING_PROCESS// New entry
+    RAW_PADDY,
+    USER,
+    MILLING_PROCESS // Uncommented
 }

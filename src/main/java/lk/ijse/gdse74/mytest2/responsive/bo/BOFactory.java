@@ -1,6 +1,5 @@
 package lk.ijse.gdse74.mytest2.responsive.bo;
 
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.MillingProcessBO;
 import lk.ijse.gdse74.mytest2.responsive.bo.custom.impl.*;
 
 public class BOFactory {
@@ -22,7 +21,7 @@ public class BOFactory {
             case EMPLOYEE -> (T) new EmployeeBOImpl();
             case RAW_PADDY -> (T) new RawPaddyBOImpl();
             case USER -> (T) new UserBOImpl();
-         //   case MILLING_PROCESS -> (T)new MillingProcessBOImpl();// New case
+            case MILLING_PROCESS -> (T) new MillingProcessBOImpl(); // New case
         };
     }
 }
