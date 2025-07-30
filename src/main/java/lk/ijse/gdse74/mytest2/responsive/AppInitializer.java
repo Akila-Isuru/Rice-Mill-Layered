@@ -20,7 +20,8 @@ public class AppInitializer extends Application {
         primaryStage.show();
     }
 
-    public static void maina(String[] args) {
+    public static void main(String[] args) {
+
         launch(args);
     }
 }

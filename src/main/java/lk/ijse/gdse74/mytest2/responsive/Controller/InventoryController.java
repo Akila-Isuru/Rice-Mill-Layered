@@ -24,51 +24,191 @@ import java.sql.Date;
 
 public class InventoryController implements Initializable {
 
-
     private static final int LOW_STOCK_THRESHOLD = 10;
     private static final int CRITICAL_STOCK_THRESHOLD = 5;
 
-    @FXML
-    private Button btnClear;
+    @FXML private Button btnClear;
+    @FXML private Button btnDelete;
+    @FXML private Button btnSave;
+    @FXML private Button btnUpdate;
+    @FXML private TableColumn<Inventorydto, Integer> colCurrentStockBags;
+    @FXML private TableColumn<Inventorydto, String> colInventory_id;
+    @FXML private TableColumn<Inventorydto, Date> colLastupdated;
+    @FXML private TableColumn<Inventorydto, String> colProduct_id;
+    @FXML private TableView<Inventorydto> table;
+    @FXML private TextField txtId;
+    @FXML private TextField txtLatUpdated;
+    @FXML private ComboBox<String> cmbProductId;
+    @FXML private TextField txt_CurrentStock;
+    @FXML private Label lblStockStatus;
 
-    @FXML
-    private Button btnDelete;
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        btnUpdate.setDisable(true);
+        btnDelete.setDisable(true);
+        lblStockStatus.setVisible(false);
+        btnSave.setDisable(false); // Ensure save button is enabled on initialization
 
-    @FXML
-    private Button btnSave;
+        loadTable();
+        try {
+            loadNextId();
+            txtLatUpdated.setText(LocalDate.now().toString());
+            txtLatUpdated.setEditable(false);
+            loadProductIds(); // This method will now use FinishedProductModel
+        } catch (SQLException e) {
+            throw new RuntimeException("Error during initialization: " + e.getMessage(), e);
+        } catch (ClassNotFoundException e) { // Catch ClassNotFoundException from FinishedProductModel
+            throw new RuntimeException("Error loading product IDs due to missing class: " + e.getMessage(), e);
+        }
+    }
 
-    @FXML
-    private Button btnUpdate;
+    private void loadProductIds() throws SQLException, ClassNotFoundException {
+        // Use FinishedProductModel to get all item (product) IDs
+        ArrayList<String> productIdList = FinishedProductModel.getAllItemIds();
+        ObservableList<String> productIds = FXCollections.observableArrayList(productIdList);
+        cmbProductId.setItems(productIds);
+    }
 
-    @FXML
-    private TableColumn<Inventorydto, Integer> colCurrentStockBags;
+    private void loadNextId() throws SQLException {
+        try {
+            String nextId = new InventoryModel().getNextId();
+            txtId.setText(nextId);
+            txtId.setEditable(false);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            showAlert("Error loading next ID", Alert.AlertType.ERROR);
+        }
+    }
 
-    @FXML
-    private TableColumn<Inventorydto, String> colInventory_id;
+    private void loadTable() {
+        colInventory_id.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colProduct_id.setCellValueFactory(new PropertyValueFactory<>("productId"));
+        colCurrentStockBags.setCellValueFactory(new PropertyValueFactory<>("currentStockBags"));
+        colLastupdated.setCellValueFactory(new PropertyValueFactory<>("lastUpdated"));
 
-    @FXML
-    private TableColumn<Inventorydto, Date> colLastupdated;
+        try {
+            ArrayList<Inventorydto> inventorydtos = InventoryModel.viewAllInventory();
+            if (inventorydtos != null) {
+                ObservableList<Inventorydto> inventory = FXCollections.observableArrayList(inventorydtos);
+                table.setItems(inventory);
 
-    @FXML
-    private TableColumn<Inventorydto, String> colProduct_id;
+                table.setRowFactory(tv -> new TableRow<Inventorydto>() {
+                    @Override
+                    protected void updateItem(Inventorydto item, boolean empty) {
+                        super.updateItem(item, empty);
 
-    @FXML
-    private TableView<Inventorydto> table;
+                        if (item == null || empty) {
+                            setStyle("");
+                        } else {
+                            if (item.getCurrentStockBags() < CRITICAL_STOCK_THRESHOLD) {
+                                setStyle("-fx-background-color: #ffdddd; -fx-font-weight: bold;");
+                            } else if (item.getCurrentStockBags() < LOW_STOCK_THRESHOLD) {
+                                setStyle("-fx-background-color: #fff3cd;");
+                            } else {
+                                setStyle("");
+                            }
+                        }
+                    }
+                });
 
-    @FXML
-    private TextField txtId;
+                checkCriticalStock(inventorydtos);
+            } else {
+                showAlert("No inventory data found", Alert.AlertType.INFORMATION);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert("Failed to load inventory data", Alert.AlertType.ERROR);
+        }
+    }
 
-    @FXML
-    private TextField txtLatUpdated;
+    private void checkCriticalStock(ArrayList<Inventorydto> inventoryList) {
+        List<String> criticalItems = new ArrayList<>();
+        List<String> lowItems = new ArrayList<>();
 
-    @FXML
-    private ComboBox<String> cmbProductId;
+        for (Inventorydto item : inventoryList) {
+            if (item.getCurrentStockBags() < CRITICAL_STOCK_THRESHOLD) {
+                criticalItems.add(item.getId() + " (" + item.getProductId() + ") - Stock: " + item.getCurrentStockBags());
+            } else if (item.getCurrentStockBags() < LOW_STOCK_THRESHOLD) {
+                lowItems.add(item.getId() + " (" + item.getProductId() + ") - Stock: " + item.getCurrentStockBags());
+            }
+        }
 
-    @FXML
-    private TextField txt_CurrentStock;
+        if (!criticalItems.isEmpty()) {
+            showStockAlert("CRITICAL STOCK ALERT",
+                    "The following items have critically low stock levels:\n\n" +
+                            String.join("\n", criticalItems),
+                    Alert.AlertType.ERROR);
+        }
 
-    @FXML
-    private Label lblStockStatus;
+        if (!lowItems.isEmpty()) {
+            showStockAlert("Low Stock Warning",
+                    "The following items have low stock levels:\n\n" +
+                            String.join("\n", lowItems),
+                    Alert.AlertType.WARNING);
+        }
+    }
+
+    private void clearFields() throws SQLException {
+        txtId.clear();
+        txtLatUpdated.clear();
+        txt_CurrentStock.clear();
+        cmbProductId.getSelectionModel().clearSelection();
+        loadNextId();
+        txtLatUpdated.setText(LocalDate.now().toString());
+        loadTable();
+        btnUpdate.setDisable(true);
+        btnDelete.setDisable(true);
+        btnSave.setDisable(false); // Enable save button after clearing
+        lblStockStatus.setVisible(false);
+    }
+
+    private boolean validateInputs() {
+        if (cmbProductId.getValue() == null || cmbProductId.getValue().isEmpty()) {
+            showAlert("Please select a Product ID", Alert.AlertType.ERROR);
+            return false;
+        }
+
+        try {
+            int currentStock = Integer.parseInt(txt_CurrentStock.getText());
+            if (currentStock < 0) { // Stock cannot be negative
+                showAlert("Current Stock cannot be negative", Alert.AlertType.ERROR);
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            showAlert("Invalid input for Current Stock. Please enter a valid number.", Alert.AlertType.ERROR);
+            return false;
+        }
+
+        try {
+            Date.valueOf(txtLatUpdated.getText());
+        } catch (IllegalArgumentException e) {
+            showAlert("Invalid date format for Last Updated. Please use YYYY-MM-DD.", Alert.AlertType.ERROR);
+            return false;
+        }
+
+        return true;
+    }
+
+    private void showAlert(String message, Alert.AlertType alertType) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(alertType);
+            alert.setTitle(alertType.name());
+            alert.setHeaderText(null);
+            alert.setContentText(message);
+            alert.show();
+        });
+    }
+
+    private void showStockAlert(String title, String content, Alert.AlertType alertType) {
+        Platform.runLater(() -> {
+            Alert alert = new Alert(alertType);
+            alert.setTitle(title);
+            alert.setHeaderText(null);
+            alert.setContentText(content);
+            alert.initOwner(table.getScene().getWindow()); // Attach to the window
+            alert.show();
+        });
+    }
 
     @FXML
     void btnClearOnAction(ActionEvent event) throws SQLException {
@@ -193,179 +333,7 @@ public class InventoryController implements Initializable {
         }
     }
 
-    @Override
-    public void initialize(URL url, ResourceBundle resourceBundle) {
-        btnUpdate.setDisable(true);
-        btnDelete.setDisable(true);
-        lblStockStatus.setVisible(false);
-        btnSave.setDisable(false); // Ensure save button is enabled on initialization
-
-        loadTable();
-        try {
-            loadNextId();
-            txtLatUpdated.setText(LocalDate.now().toString());
-            txtLatUpdated.setEditable(false);
-            loadProductIds(); // This method will now use FinishedProductModel
-        } catch (SQLException e) {
-            throw new RuntimeException("Error during initialization: " + e.getMessage(), e);
-        } catch (ClassNotFoundException e) { // Catch ClassNotFoundException from FinishedProductModel
-            throw new RuntimeException("Error loading product IDs due to missing class: " + e.getMessage(), e);
-        }
-    }
-
-    private void loadProductIds() throws SQLException, ClassNotFoundException {
-        // Use FinishedProductModel to get all item (product) IDs
-        ArrayList<String> productIdList = FinishedProductModel.getAllItemIds();
-        ObservableList<String> productIds = FXCollections.observableArrayList(productIdList);
-        cmbProductId.setItems(productIds);
-    }
-
-    private void loadNextId() throws SQLException {
-        try {
-            String nextId = new InventoryModel().getNextId();
-            txtId.setText(nextId);
-            txtId.setEditable(false);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            showAlert("Error loading next ID", Alert.AlertType.ERROR);
-        }
-    }
-
-    private void loadTable() {
-        colInventory_id.setCellValueFactory(new PropertyValueFactory<>("id"));
-        colProduct_id.setCellValueFactory(new PropertyValueFactory<>("productId"));
-        colCurrentStockBags.setCellValueFactory(new PropertyValueFactory<>("currentStockBags"));
-        colLastupdated.setCellValueFactory(new PropertyValueFactory<>("lastUpdated"));
-
-        try {
-            ArrayList<Inventorydto> inventorydtos = InventoryModel.viewAllInventory();
-            if (inventorydtos != null) {
-                ObservableList<Inventorydto> inventory = FXCollections.observableArrayList(inventorydtos);
-                table.setItems(inventory);
-
-
-                table.setRowFactory(tv -> new TableRow<Inventorydto>() {
-                    @Override
-                    protected void updateItem(Inventorydto item, boolean empty) {
-                        super.updateItem(item, empty);
-
-                        if (item == null || empty) {
-                            setStyle("");
-                        } else {
-                            if (item.getCurrentStockBags() < CRITICAL_STOCK_THRESHOLD) {
-                                setStyle("-fx-background-color: #ffdddd; -fx-font-weight: bold;");
-                            } else if (item.getCurrentStockBags() < LOW_STOCK_THRESHOLD) {
-                                setStyle("-fx-background-color: #fff3cd;");
-                            } else {
-                                setStyle("");
-                            }
-                        }
-                    }
-                });
-
-                // This alert should ideally be shown once after initial load, not on every table refresh if it's annoying.
-                // For now, it stays here. Consider a mechanism to show it only once per session or on demand.
-                checkCriticalStock(inventorydtos);
-            } else {
-                showAlert("No inventory data found", Alert.AlertType.INFORMATION);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert("Failed to load inventory data", Alert.AlertType.ERROR);
-        }
-    }
-
-    private void checkCriticalStock(ArrayList<Inventorydto> inventoryList) {
-        List<String> criticalItems = new ArrayList<>();
-        List<String> lowItems = new ArrayList<>();
-
-        for (Inventorydto item : inventoryList) {
-            if (item.getCurrentStockBags() < CRITICAL_STOCK_THRESHOLD) {
-                criticalItems.add(item.getId() + " (" + item.getProductId() + ") - Stock: " + item.getCurrentStockBags());
-            } else if (item.getCurrentStockBags() < LOW_STOCK_THRESHOLD) {
-                lowItems.add(item.getId() + " (" + item.getProductId() + ") - Stock: " + item.getCurrentStockBags());
-            }
-        }
-
-        if (!criticalItems.isEmpty()) {
-            showStockAlert("CRITICAL STOCK ALERT",
-                    "The following items have critically low stock levels:\n\n" +
-                            String.join("\n", criticalItems),
-                    Alert.AlertType.ERROR);
-        }
-
-        // Only show low stock warning if there are no critical stock items, or if you want both to show.
-        // For now, it will show both if applicable.
-        if (!lowItems.isEmpty()) {
-            showStockAlert("Low Stock Warning",
-                    "The following items have low stock levels:\n\n" +
-                            String.join("\n", lowItems),
-                    Alert.AlertType.WARNING);
-        }
-    }
-
-    private void clearFields() throws SQLException {
-        txtId.clear();
-        txtLatUpdated.clear();
-        txt_CurrentStock.clear();
-        cmbProductId.getSelectionModel().clearSelection();
-        loadNextId();
-        txtLatUpdated.setText(LocalDate.now().toString());
-        loadTable();
-        btnUpdate.setDisable(true);
-        btnDelete.setDisable(true);
-        btnSave.setDisable(false); // Enable save button after clearing
-        lblStockStatus.setVisible(false);
-    }
-
-    private boolean validateInputs() {
-        if (cmbProductId.getValue() == null || cmbProductId.getValue().isEmpty()) {
-            showAlert("Please select a Product ID", Alert.AlertType.ERROR);
-            return false;
-        }
-
-        try {
-            int currentStock = Integer.parseInt(txt_CurrentStock.getText());
-            if (currentStock < 0) { // Stock cannot be negative
-                showAlert("Current Stock cannot be negative", Alert.AlertType.ERROR);
-                return false;
-            }
-        } catch (NumberFormatException e) {
-            showAlert("Invalid input for Current Stock. Please enter a valid number.", Alert.AlertType.ERROR);
-            return false;
-        }
-
-        try {
-            Date.valueOf(txtLatUpdated.getText());
-        } catch (IllegalArgumentException e) {
-            showAlert("Invalid date format for Last Updated. Please use YYYY-MM-DD.", Alert.AlertType.ERROR);
-            return false;
-        }
-
-        return true;
-    }
-
-    private void showAlert(String message, Alert.AlertType alertType) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(alertType);
-            alert.setTitle(alertType.name());
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.show();
-        });
-    }
-
-    private void showStockAlert(String title, String content, Alert.AlertType alertType) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(alertType);
-            alert.setTitle(title);
-            alert.setHeaderText(null);
-            alert.setContentText(content);
-            alert.initOwner(table.getScene().getWindow()); // Attach to the window
-            alert.show();
-        });
-    }
-
+    @FXML
     public void tableColumnOnClicked(MouseEvent mouseEvent) {
         Inventorydto selectedItem = table.getSelectionModel().getSelectedItem();
         if (selectedItem == null) return;
@@ -382,8 +350,22 @@ public class InventoryController implements Initializable {
         validateStockInput();
     }
 
+    @FXML
     public void cmbProductIdOnAction(ActionEvent actionEvent) {
-        String selectedItem = cmbProductId.getSelectionModel().getSelectedItem();
-        System.out.println("Selected Product ID: " + selectedItem);
+        String selectedProductId = cmbProductId.getSelectionModel().getSelectedItem();
+        if (selectedProductId != null && !selectedProductId.isEmpty()) {
+            try {
+                // Fetch the total_quantity_bags from FinishedProductModel
+                int quantity = FinishedProductModel.getFinishedProductQuantity(selectedProductId);
+                txt_CurrentStock.setText(String.valueOf(quantity));
+                validateStockInput(); // Re-validate stock status after autofilling
+            } catch (SQLException | ClassNotFoundException e) {
+                e.printStackTrace();
+                showAlert("Error fetching product quantity: " + e.getMessage(), Alert.AlertType.ERROR);
+                txt_CurrentStock.clear(); // Clear if an error occurs
+            }
+        } else {
+            txt_CurrentStock.clear(); // Clear if no product is selected
+        }
     }
 }

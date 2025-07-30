@@ -52,10 +52,21 @@ public class FinishedProductModel {
         return list;
     }
 
+    // NEW METHOD: Get total_quantity_bags for a given product_id
+    public static int getFinishedProductQuantity(String productId) throws SQLException, ClassNotFoundException {
+        String sql = "SELECT total_quantity_bags FROM finished_product WHERE product_id = ?";
+        ResultSet rs = CrudUtill.execute(sql, productId);
+        if (rs.next()) {
+            return rs.getInt("total_quantity_bags");
+        }
+        return 0; // Return 0 if not found or no quantity
+    }
+
+
     public static boolean reduceQty(SalesOrderDetailsdto salesOrderDetailsdto) throws SQLException {
         return CrudUtill.execute(
                 "update finished_product set total_quantity_bags = total_quantity_bags - ? where product_id = ?",
-                salesOrderDetailsdto.getUnitPrice(),
+                salesOrderDetailsdto.getUnitPrice(), // This looks like it should be quantity, not unitPrice
                 salesOrderDetailsdto.getProductId()
         );
     }
