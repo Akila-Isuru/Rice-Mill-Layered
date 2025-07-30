@@ -8,16 +8,21 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.FinishedProductBO;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.MillingProcessBO;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
 import lk.ijse.gdse74.mytest2.responsive.dto.FinishedProductdto;
-import lk.ijse.gdse74.mytest2.responsive.model.FinishedProductModel;
-import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel; // Import for MillingProcessModel
+import lk.ijse.gdse74.mytest2.responsive.dto.MillingProcessdto;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.sql.SQLException;
 
 public class FinishedProductController implements Initializable {
 
@@ -25,12 +30,12 @@ public class FinishedProductController implements Initializable {
     @FXML private Button btnDelete;
     @FXML private Button btnSave;
     @FXML private Button btnUpdate;
-    @FXML private TableColumn<FinishedProductdto,String> colMilling_id;
+    @FXML private TableColumn<FinishedProductdto, String> colMilling_id;
     @FXML private TableColumn<FinishedProductdto, Double> colPackaging_size;
     @FXML private TableColumn<FinishedProductdto, Integer> colPricePer_bag;
-    @FXML private TableColumn<FinishedProductdto,String> colProduct_id;
-    @FXML private TableColumn<FinishedProductdto,String> colProduct_type;
-    @FXML private TableColumn<FinishedProductdto,Integer> colTotal_quantity;
+    @FXML private TableColumn<FinishedProductdto, String> colProduct_id;
+    @FXML private TableColumn<FinishedProductdto, String> colProduct_type;
+    @FXML private TableColumn<FinishedProductdto, Integer> colTotal_quantity;
     @FXML private TableView<FinishedProductdto> table;
     @FXML private TextField txtProduct_id;
     @FXML private TextField txtPricePer_bag;
@@ -38,19 +43,23 @@ public class FinishedProductController implements Initializable {
 
     @FXML private ComboBox<String> cmbMilling_id;
     @FXML private ComboBox<String> cmbProduct_type;
-    // NEW: Changed from TextField to ComboBox for Packaging Size
     @FXML private ComboBox<Double> cmbPackaging_size;
 
+    // BO instances using BOFactory
+    private final FinishedProductBO finishedProductBO = BOFactory.getInstance().getBO(BOTypes.FINISHED_PRODUCT);
+    private final MillingProcessBO millingProcessBO = BOFactory.getInstance().getBO(BOTypes.MILLING_PROCESS);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellValueFactories();
-        loadTable();
+        setupFieldListeners(); // Set up listeners before loading data
+
         loadNextId();
+        loadTable();
         loadMillingIds();
         loadProductTypes();
-        loadPackagingSizes(); // NEW: Load packaging sizes into the ComboBox
-        setupFieldListeners();
+        loadPackagingSizes();
+        updateButtonStates(); // Set initial button states
     }
 
     private void setCellValueFactories() {
@@ -64,33 +73,36 @@ public class FinishedProductController implements Initializable {
 
     private void loadTable() {
         try {
-            ArrayList<FinishedProductdto> allProducts = FinishedProductModel.viewAllFinishedProduct();
+            List<FinishedProductdto> allProducts = finishedProductBO.getAllFinishedProducts();
             table.setItems(FXCollections.observableArrayList(allProducts));
-        } catch (Exception e) {
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Failed to load data: " + e.getMessage());
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load data").show();
         }
     }
 
     private void loadNextId() {
         try {
-            String nextId = new FinishedProductModel().getNextId();
+            String nextId = finishedProductBO.getNextFinishedProductId();
             txtProduct_id.setText(nextId);
-            txtProduct_id.setDisable(true);
-            btnSave.setDisable(false);
-        } catch (Exception e) {
+            txtProduct_id.setDisable(true); // Should always be disabled
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Failed to generate next ID: " + e.getMessage());
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to generate next ID").show();
         }
     }
 
     private void loadMillingIds() {
         try {
-            ArrayList<String> millingIds = MillingProcessModel.getAllMillingIds();
-            cmbMilling_id.setItems(FXCollections.observableArrayList(millingIds));
-        } catch (SQLException | ClassNotFoundException e) {
+            List<MillingProcessdto> allMillingProcesses = millingProcessBO.getAllMillingProcesses();
+            ObservableList<String> millingIds = FXCollections.observableArrayList();
+            for (MillingProcessdto dto : allMillingProcesses) {
+                millingIds.add(dto.getMillingId());
+            }
+            cmbMilling_id.setItems(millingIds);
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Failed to load Milling IDs: " + e.getMessage());
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to load Milling IDs").show();
         }
     }
 
@@ -105,33 +117,38 @@ public class FinishedProductController implements Initializable {
         cmbProduct_type.setItems(riceTypes);
     }
 
-    // NEW: Method to load predefined packaging sizes into the ComboBox
     private void loadPackagingSizes() {
         ObservableList<Double> sizes = FXCollections.observableArrayList(
-                1.0,  // 1 kg
-                5.0,  // 5 kg
-                10.0, // 10 kg
-                25.0  // 25 kg
+                1.0,
+                5.0,
+                10.0,
+                25.0
         );
         cmbPackaging_size.setItems(sizes);
     }
 
     private void setupFieldListeners() {
-        cmbMilling_id.valueProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
-        cmbProduct_type.valueProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
-        cmbPackaging_size.valueProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState()); // NEW: Listener for Packaging Size ComboBox
-        txtPricePer_bag.textProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
-        txtQuantity_bags.textProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
+        cmbMilling_id.valueProperty().addListener((observable, oldValue, newValue) -> updateButtonStates());
+        cmbProduct_type.valueProperty().addListener((observable, oldValue, newValue) -> updateButtonStates());
+        cmbPackaging_size.valueProperty().addListener((observable, oldValue, newValue) -> updateButtonStates());
+        txtPricePer_bag.textProperty().addListener((observable, oldValue, newValue) -> updateButtonStates());
+        txtQuantity_bags.textProperty().addListener((observable, oldValue, newValue) -> updateButtonStates());
+        table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> updateButtonStates());
     }
 
-    private void updateSaveButtonState() {
-        boolean allFieldsFilled = cmbMilling_id.getValue() != null &&
-                cmbProduct_type.getValue() != null &&
-                cmbPackaging_size.getValue() != null && // NEW: Check if a packaging size is selected
-                !txtPricePer_bag.getText().isEmpty() &&
-                !txtQuantity_bags.getText().isEmpty();
+    private void updateButtonStates() {
+        boolean isValidInput = validateFields(false); // Validate without showing dialogs
+        FinishedProductdto selectedItem = table.getSelectionModel().getSelectedItem();
 
-        btnSave.setDisable(!allFieldsFilled);
+        if (selectedItem == null) { // No item selected (new record mode)
+            btnSave.setDisable(!isValidInput);
+            btnUpdate.setDisable(true);
+            btnDelete.setDisable(true);
+        } else { // Item selected (edit/delete mode)
+            btnSave.setDisable(true);
+            btnUpdate.setDisable(!isValidInput);
+            btnDelete.setDisable(false);
+        }
     }
 
     @FXML
@@ -149,19 +166,18 @@ public class FinishedProductController implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                boolean isDeleted = new FinishedProductModel().deleteFinishedProduct(
-                        new FinishedProductdto(txtProduct_id.getText())
-                );
+                boolean isDeleted = finishedProductBO.deleteFinishedProduct(txtProduct_id.getText());
 
                 if (isDeleted) {
-                    new Alert(Alert.AlertType.INFORMATION, "Deleted Successfully!").show();
+                    showAlert(Alert.AlertType.INFORMATION, "Deleted Successfully!");
                     clearFields();
-                    loadTable();
                 } else {
-                    new Alert(Alert.AlertType.ERROR, "Delete Failed!").show();
+                    showAlert(Alert.AlertType.ERROR, "Delete Failed! (Product not found or other issue)");
                 }
-            } catch (Exception e) {
-                new Alert(Alert.AlertType.ERROR, "Something went wrong!").show();
+            } catch (InUseException | NotFoundException e) {
+                showAlert(Alert.AlertType.ERROR, e.getMessage());
+            } catch (SQLException e) {
+                showAlert(Alert.AlertType.ERROR, "Something went wrong! " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -169,37 +185,30 @@ public class FinishedProductController implements Initializable {
 
     @FXML
     void btnSaveOnAction(ActionEvent event) {
+        if (!validateFields(true)) { // Validate with dialogs
+            return;
+        }
+
         try {
-            if (!validateFields()) {
-                return;
-            }
-
-            double packagingSize = cmbPackaging_size.getValue(); // NEW: Get value from Packaging Size ComboBox
-            int quantityBags = Integer.parseInt(txtQuantity_bags.getText());
-            int pricePerBag = Integer.parseInt(txtPricePer_bag.getText());
-
             FinishedProductdto dto = new FinishedProductdto(
                     txtProduct_id.getText(),
                     cmbMilling_id.getValue(),
                     cmbProduct_type.getValue(),
-                    packagingSize,
-                    quantityBags,
-                    pricePerBag
+                    cmbPackaging_size.getValue(),
+                    Integer.parseInt(txtQuantity_bags.getText()),
+                    Integer.parseInt(txtPricePer_bag.getText())
             );
 
-            boolean isSaved = new FinishedProductModel().saveFinishedProduct(dto);
+            finishedProductBO.saveFinishedProduct(dto);
 
-            if (isSaved) {
-                new Alert(Alert.AlertType.INFORMATION, "Saved Successfully!").show();
-                clearFields();
-                loadTable();
-            } else {
-                new Alert(Alert.AlertType.ERROR, "Save Failed!").show();
-            }
+            showAlert(Alert.AlertType.INFORMATION, "Saved Successfully!");
+            clearFields();
+        } catch (DuplicateException e) {
+            showAlert(Alert.AlertType.ERROR, e.getMessage());
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.ERROR, "Invalid numeric value in price/quantity").show();
-        } catch (Exception e) {
-            new Alert(Alert.AlertType.ERROR, "Something went wrong!").show();
+            showAlert(Alert.AlertType.ERROR, "Invalid numeric value in quantity or price. Please enter whole numbers.");
+        } catch (SQLException e) {
+            showAlert(Alert.AlertType.ERROR, "Something went wrong! " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -214,36 +223,29 @@ public class FinishedProductController implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                if (!validateFields()) {
+                if (!validateFields(true)) { // Validate with dialogs
                     return;
                 }
-
-                double packagingSize = cmbPackaging_size.getValue(); // NEW: Get value from Packaging Size ComboBox
-                int quantityBags = Integer.parseInt(txtQuantity_bags.getText());
-                int pricePerBag = Integer.parseInt(txtPricePer_bag.getText());
 
                 FinishedProductdto dto = new FinishedProductdto(
                         txtProduct_id.getText(),
                         cmbMilling_id.getValue(),
                         cmbProduct_type.getValue(),
-                        packagingSize,
-                        quantityBags,
-                        pricePerBag
+                        cmbPackaging_size.getValue(),
+                        Integer.parseInt(txtQuantity_bags.getText()),
+                        Integer.parseInt(txtPricePer_bag.getText())
                 );
 
-                boolean isUpdated = new FinishedProductModel().updateFinishedProduct(dto);
+                finishedProductBO.updateFinishedProduct(dto);
 
-                if (isUpdated) {
-                    new Alert(Alert.AlertType.INFORMATION, "Updated Successfully!").show();
-                    clearFields();
-                    loadTable();
-                } else {
-                    new Alert(Alert.AlertType.ERROR, "Update Failed!").show();
-                }
+                showAlert(Alert.AlertType.INFORMATION, "Updated Successfully!");
+                clearFields();
+            } catch (NotFoundException e) {
+                showAlert(Alert.AlertType.ERROR, e.getMessage());
             } catch (NumberFormatException e) {
-                new Alert(Alert.AlertType.ERROR, "Invalid numeric value in price/quantity").show();
-            } catch (Exception e) {
-                new Alert(Alert.AlertType.ERROR, "Something went wrong!").show();
+                showAlert(Alert.AlertType.ERROR, "Invalid numeric value in quantity or price. Please enter whole numbers.");
+            } catch (SQLException e) {
+                showAlert(Alert.AlertType.ERROR, "Something went wrong! " + e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -256,47 +258,73 @@ public class FinishedProductController implements Initializable {
             txtProduct_id.setText(selectedItem.getProductId());
             cmbMilling_id.setValue(selectedItem.getMillingId());
             cmbProduct_type.setValue(selectedItem.getProductType());
-            cmbPackaging_size.setValue(selectedItem.getPackageSize()); // NEW: Set Packaging Size ComboBox value
+            cmbPackaging_size.setValue(selectedItem.getPackageSize());
             txtQuantity_bags.setText(String.valueOf(selectedItem.getQuantityBags()));
             txtPricePer_bag.setText(String.valueOf(selectedItem.getPricePerBag()));
 
-            btnSave.setDisable(true);
+            updateButtonStates(); // Update button states based on selection
         }
     }
 
-    private boolean validateFields() {
-        if (cmbMilling_id.getValue() == null || cmbMilling_id.getValue().isEmpty() ||
-                cmbProduct_type.getValue() == null || cmbProduct_type.getValue().isEmpty() ||
-                cmbPackaging_size.getValue() == null || // NEW: Validate Packaging Size ComboBox selection
-                txtPricePer_bag.getText().isEmpty() ||
-                txtQuantity_bags.getText().isEmpty()) {
-            new Alert(Alert.AlertType.ERROR, "Please fill all fields").show();
+    private boolean validateFields(boolean showDialog) {
+        if (cmbMilling_id.getValue() == null || cmbMilling_id.getValue().isEmpty()) {
+            if (showDialog) showAlert(Alert.AlertType.ERROR, "Please select a Milling ID.");
+            return false;
+        }
+        if (cmbProduct_type.getValue() == null || cmbProduct_type.getValue().isEmpty()) {
+            if (showDialog) showAlert(Alert.AlertType.ERROR, "Please select a Product Type.");
+            return false;
+        }
+        if (cmbPackaging_size.getValue() == null) {
+            if (showDialog) showAlert(Alert.AlertType.ERROR, "Please select a Packaging Size.");
+            return false;
+        }
+        if (txtQuantity_bags.getText().isEmpty()) {
+            if (showDialog) showAlert(Alert.AlertType.ERROR, "Total Quantity (Bags) cannot be empty.");
+            return false;
+        }
+        if (txtPricePer_bag.getText().isEmpty()) {
+            if (showDialog) showAlert(Alert.AlertType.ERROR, "Price per Bag cannot be empty.");
             return false;
         }
 
         try {
-            // No need to parse packaging size as it's already a Double from ComboBox
-            Integer.parseInt(txtQuantity_bags.getText());
-            Integer.parseInt(txtPricePer_bag.getText());
+            int quantityBags = Integer.parseInt(txtQuantity_bags.getText());
+            int pricePerBag = Integer.parseInt(txtPricePer_bag.getText());
+            if (quantityBags <= 0) {
+                if (showDialog) showAlert(Alert.AlertType.ERROR, "Quantity (Bags) must be a positive whole number.");
+                return false;
+            }
+            if (pricePerBag <= 0) {
+                if (showDialog) showAlert(Alert.AlertType.ERROR, "Price per Bag must be a positive whole number.");
+                return false;
+            }
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.ERROR, "Quantity and Price per Bag must contain valid numbers").show();
+            if (showDialog) showAlert(Alert.AlertType.ERROR, "Quantity and Price per Bag must contain valid whole numbers.");
             return false;
         }
-
         return true;
     }
 
     private void clearFields() {
         cmbMilling_id.getSelectionModel().clearSelection();
         cmbProduct_type.getSelectionModel().clearSelection();
-        cmbPackaging_size.getSelectionModel().clearSelection(); // NEW: Clear Packaging Size ComboBox selection
+        cmbPackaging_size.getSelectionModel().clearSelection();
         txtPricePer_bag.clear();
         txtQuantity_bags.clear();
 
         loadNextId();
         loadTable();
+        // No need to reload IDs/Types/Sizes unless their source data changes,
+        // but for simplicity/consistency with your original, keeping them here.
         loadMillingIds();
         loadProductTypes();
-        loadPackagingSizes(); // NEW: Reload packaging sizes
+        loadPackagingSizes();
+        table.getSelectionModel().clearSelection(); // Clear selection after clearing fields
+        updateButtonStates(); // Reset button states
+    }
+
+    private void showAlert(Alert.AlertType type, String message) {
+        new Alert(type, message).show();
     }
 }

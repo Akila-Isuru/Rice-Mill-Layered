@@ -111,22 +111,20 @@ public class EntityDTOConverter {
                 dto.getQuantity(),
                 dto.getMoisture(),
                 dto.getPurchasePrice(),
-                (Date) dto.getPurchaseDate() // Assuming DTO has java.util.Date and Entity expects java.sql.Date
+                (Date) dto.getPurchaseDate()
         );
     }
 
-    // --- MillingProcess Conversions ---
     public MillingProcessdto getMillingProcessdto(MillingProcess millingProcess) {
         return new MillingProcessdto(
                 millingProcess.getMillingId(),
                 millingProcess.getPaddyId(),
-                // Convert java.sql.Time to java.time.LocalTime for DTO
                 millingProcess.getStartTime() != null ? millingProcess.getStartTime().toLocalTime() : null,
                 millingProcess.getEndTime() != null ? millingProcess.getEndTime().toLocalTime() : null,
                 millingProcess.getMilledQuantity(),
                 millingProcess.getBrokenRice(),
-                millingProcess.getHuskKg(), // Entity uses huskKg
-                millingProcess.getBranKg()  // Entity uses branKg
+                millingProcess.getHuskKg(),
+                millingProcess.getBranKg()
         );
     }
 
@@ -134,23 +132,21 @@ public class EntityDTOConverter {
         return new MillingProcess(
                 millingProcessdto.getMillingId(),
                 millingProcessdto.getPaddyId(),
-                // Convert java.time.LocalTime to java.sql.Time for Entity
                 millingProcessdto.getStartTime() != null ? Time.valueOf(millingProcessdto.getStartTime()) : null,
                 millingProcessdto.getEndTime() != null ? Time.valueOf(millingProcessdto.getEndTime()) : null,
                 millingProcessdto.getMilledQuantity(),
                 millingProcessdto.getBrokenRice(),
-                millingProcessdto.getHusk(), // DTO uses husk
-                millingProcessdto.getBran()  // DTO uses bran
+                millingProcessdto.getHusk(),
+                millingProcessdto.getBran()
         );
     }
 
-    // --- New methods for Users ---
     public Usersdto getUsersdto(User user) {
         return new Usersdto(
                 user.getUserId(),
                 user.getName(),
                 user.getEmail(),
-                user.getPassword(), // Ensure password handling aligns with security practices (hashing)
+                user.getPassword(),
                 user.getRole(),
                 user.getContactNumber()
         );
@@ -163,7 +159,7 @@ public class EntityDTOConverter {
                 dto.getEmail(),
                 dto.getRole(),
                 dto.getContact_number(),
-                dto.getPassword() // Ensure password handling aligns with security practices (hashing)
+                dto.getPassword()
         );
     }
 
@@ -181,5 +177,28 @@ public class EntityDTOConverter {
             userList.add(getUser(dto));
         }
         return userList;
+    }
+
+    // --- FinishedProduct Conversions ---
+    public FinishedProductdto getFinishedProductdto(FinishedProduct finishedProduct) {
+        return new FinishedProductdto(
+                finishedProduct.getProductId(),
+                finishedProduct.getMillingId(),
+                finishedProduct.getProductType(),
+                finishedProduct.getPackagingSizeKg().doubleValue(), // Convert BigDecimal to double for DTO
+                finishedProduct.getTotalQuantityBags(),
+                finishedProduct.getPricePerBag()
+        );
+    }
+
+    public FinishedProduct getFinishedProduct(FinishedProductdto finishedProductdto) {
+        return new FinishedProduct(
+                finishedProductdto.getProductId(),
+                finishedProductdto.getMillingId(),
+                finishedProductdto.getProductType(),
+                BigDecimal.valueOf(finishedProductdto.getPackageSize()), // Convert double to BigDecimal for Entity
+                finishedProductdto.getQuantityBags(),
+                finishedProductdto.getPricePerBag()
+        );
     }
 }

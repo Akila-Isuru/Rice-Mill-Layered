@@ -6,6 +6,7 @@ public enum BOTypes {
     SUPPLIER,
     EMPLOYEE,
     USER,
-    MILLING_PROCESS, // Uncommented
-    RAW_PADDY
+    MILLING_PROCESS,
+    RAW_PADDY,
+    FINISHED_PRODUCT // New entry
 }
