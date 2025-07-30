@@ -10,11 +10,14 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
 import lk.ijse.gdse74.mytest2.responsive.dto.FinishedProductdto;
 import lk.ijse.gdse74.mytest2.responsive.model.FinishedProductModel;
+import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel; // Import for MillingProcessModel
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.sql.SQLException;
 
 public class FinishedProductController implements Initializable {
 
@@ -29,18 +32,24 @@ public class FinishedProductController implements Initializable {
     @FXML private TableColumn<FinishedProductdto,String> colProduct_type;
     @FXML private TableColumn<FinishedProductdto,Integer> colTotal_quantity;
     @FXML private TableView<FinishedProductdto> table;
-    @FXML private TextField txtMilling_id;
-    @FXML private TextField txtPackaging_size;
-    @FXML private TextField txtPricePer_bag;
     @FXML private TextField txtProduct_id;
-    @FXML private TextField txtProduct_type;
+    @FXML private TextField txtPricePer_bag;
     @FXML private TextField txtQuantity_bags;
+
+    @FXML private ComboBox<String> cmbMilling_id;
+    @FXML private ComboBox<String> cmbProduct_type;
+    // NEW: Changed from TextField to ComboBox for Packaging Size
+    @FXML private ComboBox<Double> cmbPackaging_size;
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellValueFactories();
         loadTable();
         loadNextId();
+        loadMillingIds();
+        loadProductTypes();
+        loadPackagingSizes(); // NEW: Load packaging sizes into the ComboBox
         setupFieldListeners();
     }
 
@@ -75,19 +84,51 @@ public class FinishedProductController implements Initializable {
         }
     }
 
+    private void loadMillingIds() {
+        try {
+            ArrayList<String> millingIds = MillingProcessModel.getAllMillingIds();
+            cmbMilling_id.setItems(FXCollections.observableArrayList(millingIds));
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            new Alert(Alert.AlertType.ERROR, "Failed to load Milling IDs").show();
+        }
+    }
+
+    private void loadProductTypes() {
+        ObservableList<String> riceTypes = FXCollections.observableArrayList(
+                "Keeri Samba",
+                "Samba",
+                "Nadu",
+                "Red Raw Rice (Rath Hal)",
+                "Basmati"
+        );
+        cmbProduct_type.setItems(riceTypes);
+    }
+
+    // NEW: Method to load predefined packaging sizes into the ComboBox
+    private void loadPackagingSizes() {
+        ObservableList<Double> sizes = FXCollections.observableArrayList(
+                1.0,  // 1 kg
+                5.0,  // 5 kg
+                10.0, // 10 kg
+                25.0  // 25 kg
+        );
+        cmbPackaging_size.setItems(sizes);
+    }
+
     private void setupFieldListeners() {
-        txtMilling_id.textProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
-        txtPackaging_size.textProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
+        cmbMilling_id.valueProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
+        cmbProduct_type.valueProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
+        cmbPackaging_size.valueProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState()); // NEW: Listener for Packaging Size ComboBox
         txtPricePer_bag.textProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
-        txtProduct_type.textProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
         txtQuantity_bags.textProperty().addListener((observable, oldValue, newValue) -> updateSaveButtonState());
     }
 
     private void updateSaveButtonState() {
-        boolean allFieldsFilled = !txtMilling_id.getText().isEmpty() &&
-                !txtPackaging_size.getText().isEmpty() &&
+        boolean allFieldsFilled = cmbMilling_id.getValue() != null &&
+                cmbProduct_type.getValue() != null &&
+                cmbPackaging_size.getValue() != null && // NEW: Check if a packaging size is selected
                 !txtPricePer_bag.getText().isEmpty() &&
-                !txtProduct_type.getText().isEmpty() &&
                 !txtQuantity_bags.getText().isEmpty();
 
         btnSave.setDisable(!allFieldsFilled);
@@ -133,14 +174,14 @@ public class FinishedProductController implements Initializable {
                 return;
             }
 
-            double packagingSize = Double.parseDouble(txtPackaging_size.getText());
+            double packagingSize = cmbPackaging_size.getValue(); // NEW: Get value from Packaging Size ComboBox
             int quantityBags = Integer.parseInt(txtQuantity_bags.getText());
             int pricePerBag = Integer.parseInt(txtPricePer_bag.getText());
 
             FinishedProductdto dto = new FinishedProductdto(
                     txtProduct_id.getText(),
-                    txtMilling_id.getText(),
-                    txtProduct_type.getText(),
+                    cmbMilling_id.getValue(),
+                    cmbProduct_type.getValue(),
                     packagingSize,
                     quantityBags,
                     pricePerBag
@@ -156,7 +197,7 @@ public class FinishedProductController implements Initializable {
                 new Alert(Alert.AlertType.ERROR, "Save Failed!").show();
             }
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.ERROR, "Invalid numeric value").show();
+            new Alert(Alert.AlertType.ERROR, "Invalid numeric value in price/quantity").show();
         } catch (Exception e) {
             new Alert(Alert.AlertType.ERROR, "Something went wrong!").show();
             e.printStackTrace();
@@ -177,14 +218,14 @@ public class FinishedProductController implements Initializable {
                     return;
                 }
 
-                double packagingSize = Double.parseDouble(txtPackaging_size.getText());
+                double packagingSize = cmbPackaging_size.getValue(); // NEW: Get value from Packaging Size ComboBox
                 int quantityBags = Integer.parseInt(txtQuantity_bags.getText());
                 int pricePerBag = Integer.parseInt(txtPricePer_bag.getText());
 
                 FinishedProductdto dto = new FinishedProductdto(
                         txtProduct_id.getText(),
-                        txtMilling_id.getText(),
-                        txtProduct_type.getText(),
+                        cmbMilling_id.getValue(),
+                        cmbProduct_type.getValue(),
                         packagingSize,
                         quantityBags,
                         pricePerBag
@@ -200,7 +241,7 @@ public class FinishedProductController implements Initializable {
                     new Alert(Alert.AlertType.ERROR, "Update Failed!").show();
                 }
             } catch (NumberFormatException e) {
-                new Alert(Alert.AlertType.ERROR, "Invalid numeric value").show();
+                new Alert(Alert.AlertType.ERROR, "Invalid numeric value in price/quantity").show();
             } catch (Exception e) {
                 new Alert(Alert.AlertType.ERROR, "Something went wrong!").show();
                 e.printStackTrace();
@@ -213,9 +254,9 @@ public class FinishedProductController implements Initializable {
         FinishedProductdto selectedItem = table.getSelectionModel().getSelectedItem();
         if (selectedItem != null) {
             txtProduct_id.setText(selectedItem.getProductId());
-            txtMilling_id.setText(selectedItem.getMillingId());
-            txtProduct_type.setText(selectedItem.getProductType());
-            txtPackaging_size.setText(String.valueOf(selectedItem.getPackageSize()));
+            cmbMilling_id.setValue(selectedItem.getMillingId());
+            cmbProduct_type.setValue(selectedItem.getProductType());
+            cmbPackaging_size.setValue(selectedItem.getPackageSize()); // NEW: Set Packaging Size ComboBox value
             txtQuantity_bags.setText(String.valueOf(selectedItem.getQuantityBags()));
             txtPricePer_bag.setText(String.valueOf(selectedItem.getPricePerBag()));
 
@@ -224,21 +265,21 @@ public class FinishedProductController implements Initializable {
     }
 
     private boolean validateFields() {
-        if (txtMilling_id.getText().isEmpty() ||
-                txtPackaging_size.getText().isEmpty() ||
+        if (cmbMilling_id.getValue() == null || cmbMilling_id.getValue().isEmpty() ||
+                cmbProduct_type.getValue() == null || cmbProduct_type.getValue().isEmpty() ||
+                cmbPackaging_size.getValue() == null || // NEW: Validate Packaging Size ComboBox selection
                 txtPricePer_bag.getText().isEmpty() ||
-                txtProduct_type.getText().isEmpty() ||
                 txtQuantity_bags.getText().isEmpty()) {
             new Alert(Alert.AlertType.ERROR, "Please fill all fields").show();
             return false;
         }
 
         try {
-            Double.parseDouble(txtPackaging_size.getText());
+            // No need to parse packaging size as it's already a Double from ComboBox
             Integer.parseInt(txtQuantity_bags.getText());
             Integer.parseInt(txtPricePer_bag.getText());
         } catch (NumberFormatException e) {
-            new Alert(Alert.AlertType.ERROR, "Numeric fields must contain valid numbers").show();
+            new Alert(Alert.AlertType.ERROR, "Quantity and Price per Bag must contain valid numbers").show();
             return false;
         }
 
@@ -246,13 +287,16 @@ public class FinishedProductController implements Initializable {
     }
 
     private void clearFields() {
-        txtMilling_id.clear();
-        txtPackaging_size.clear();
+        cmbMilling_id.getSelectionModel().clearSelection();
+        cmbProduct_type.getSelectionModel().clearSelection();
+        cmbPackaging_size.getSelectionModel().clearSelection(); // NEW: Clear Packaging Size ComboBox selection
         txtPricePer_bag.clear();
-        txtProduct_type.clear();
         txtQuantity_bags.clear();
 
         loadNextId();
         loadTable();
+        loadMillingIds();
+        loadProductTypes();
+        loadPackagingSizes(); // NEW: Reload packaging sizes
     }
 }
