@@ -1,8 +1,8 @@
 package lk.ijse.gdse74.mytest2.responsive.dao.custom.impl;
 
 import lk.ijse.gdse74.mytest2.responsive.dao.SQLUtill;
-import lk.ijse.gdse74.mytest2.responsive.dao.custom.MachineMaintenanceDAO; // Corrected import
-import lk.ijse.gdse74.mytest2.responsive.entity.MachineMaintenance; // Import the new entity
+import lk.ijse.gdse74.mytest2.responsive.dao.custom.MachineMaintenanceDAO;
+import lk.ijse.gdse74.mytest2.responsive.entity.MachineMaintenance;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -14,42 +14,40 @@ public class MachineMaintenanceDAOImpl implements MachineMaintenanceDAO {
 
     @Override
     public List<MachineMaintenance> getAll() throws SQLException {
-        ResultSet rs = SQLUtill.execute("SELECT * FROM machine_maintenance");
-        List<MachineMaintenance> maintenances = new ArrayList<>();
-        while (rs.next()) {
-            MachineMaintenance machineMaintenance = new MachineMaintenance(
-                    rs.getString("maintenance_id"),
-                    rs.getString("machine_name"),
-                    rs.getString("maintenance_date"),
-                    rs.getString("description"),
-                    rs.getInt("cost")
-            );
-            maintenances.add(machineMaintenance);
+        ResultSet resultSet = SQLUtill.execute("SELECT * FROM machine_maintenance");
+        List<MachineMaintenance> list = new ArrayList<>();
+        while (resultSet.next()) {
+            list.add(new MachineMaintenance(
+                    resultSet.getString("maintenance_id"),
+                    resultSet.getString("machine_name"),
+                    resultSet.getString("maintenance_date"),
+                    resultSet.getString("description"),
+                    resultSet.getInt("cost")
+            ));
         }
-        return maintenances;
+        return list;
     }
 
     @Override
     public String getNextId() throws SQLException {
         ResultSet resultSet = SQLUtill.execute("SELECT maintenance_id FROM machine_maintenance ORDER BY maintenance_id DESC LIMIT 1");
         if (resultSet.next()) {
-            String lastId = resultSet.getString(1);
+            String lastId = resultSet.getString(1); // e.g., "MM001"
             try {
-                // Assuming ID format like "MM001"
-                int lastIdNumber = Integer.parseInt(lastId.substring(2)); // Skip 'MM' and parse to int
+                int lastIdNumber = Integer.parseInt(lastId.substring(2)); // Skip 'MM' and parse
                 return String.format("MM%03d", lastIdNumber + 1); // Increment and format
             } catch (NumberFormatException e) {
-                // If parsing fails (e.g., first ID is not MM001 or format changes)
-                return "MM001";
+                // Handle cases where ID might not be in "MM001" format
+                return "MM001"; // Fallback to initial ID
             }
         }
-        return "MM001"; // First ID
+        return "MM001"; // Initial ID if no records exist
     }
 
     @Override
     public boolean save(MachineMaintenance machineMaintenance) throws SQLException {
         return SQLUtill.execute(
-                "INSERT INTO machine_maintenance (maintenance_id, machine_name, maintenance_date, description, cost) VALUES (?,?,?,?,?)",
+                "INSERT INTO machine_maintenance (maintenance_id, machine_name, maintenance_date, description, cost) VALUES (?, ?, ?, ?, ?)",
                 machineMaintenance.getMaintenanceId(),
                 machineMaintenance.getMachineName(),
                 machineMaintenance.getMaintenanceDate(),
@@ -61,7 +59,7 @@ public class MachineMaintenanceDAOImpl implements MachineMaintenanceDAO {
     @Override
     public boolean update(MachineMaintenance machineMaintenance) throws SQLException {
         return SQLUtill.execute(
-                "UPDATE machine_maintenance SET machine_name=?, maintenance_date=?, description=?, cost=? WHERE maintenance_id=?",
+                "UPDATE machine_maintenance SET machine_name = ?, maintenance_date = ?, description = ?, cost = ? WHERE maintenance_id = ?",
                 machineMaintenance.getMachineName(),
                 machineMaintenance.getMaintenanceDate(),
                 machineMaintenance.getDescription(),
@@ -72,7 +70,7 @@ public class MachineMaintenanceDAOImpl implements MachineMaintenanceDAO {
 
     @Override
     public boolean delete(String id) throws SQLException {
-        return SQLUtill.execute("DELETE FROM machine_maintenance WHERE maintenance_id=?", id);
+        return SQLUtill.execute("DELETE FROM machine_maintenance WHERE maintenance_id = ?", id);
     }
 
     @Override

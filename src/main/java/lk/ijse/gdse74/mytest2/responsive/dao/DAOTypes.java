@@ -9,5 +9,6 @@ public enum DAOTypes {
     USER,
     MILLING_PROCESS,
     FINISHED_PRODUCT,
-    INVENTORY // New entry
+    INVENTORY,
+    MACHINE_MAINTENANCE // New entry
 }

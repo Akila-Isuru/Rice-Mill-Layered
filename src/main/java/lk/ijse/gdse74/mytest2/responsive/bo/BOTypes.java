@@ -9,5 +9,6 @@ public enum BOTypes {
     MILLING_PROCESS,
     RAW_PADDY,
     FINISHED_PRODUCT,
-    INVENTORY // New entry
+    INVENTORY,
+    MACHINE_MAINTENANCE // New entry
 }

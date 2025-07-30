@@ -11,7 +11,7 @@ import java.util.List;
 
 public class EntityDTOConverter {
 
-    // ... (Existing conversion methods for Customer, Farmer, Supplier, Employee, RawPaddy, MillingProcess, User) ...
+    // ... (Existing conversion methods for Customer, Farmer, Supplier, Employee, RawPaddy, MillingProcess, User, FinishedProduct, Inventory) ...
 
     public Customersdto getCustomerDTO(Customer customer) {
         return new Customersdto(
@@ -186,7 +186,7 @@ public class EntityDTOConverter {
                 finishedProduct.getProductId(),
                 finishedProduct.getMillingId(),
                 finishedProduct.getProductType(),
-                finishedProduct.getPackagingSizeKg().doubleValue(), // Convert BigDecimal to double for DTO
+                finishedProduct.getPackagingSizeKg().doubleValue(),
                 finishedProduct.getTotalQuantityBags(),
                 finishedProduct.getPricePerBag()
         );
@@ -197,13 +197,12 @@ public class EntityDTOConverter {
                 finishedProductdto.getProductId(),
                 finishedProductdto.getMillingId(),
                 finishedProductdto.getProductType(),
-                BigDecimal.valueOf(finishedProductdto.getPackageSize()), // Convert double to BigDecimal for Entity
+                BigDecimal.valueOf(finishedProductdto.getPackageSize()),
                 finishedProductdto.getQuantityBags(),
                 finishedProductdto.getPricePerBag()
         );
     }
 
-    // --- NEW: Inventory Conversions ---
     public Inventorydto getInventorydto(Inventory inventory) {
         return new Inventorydto(
                 inventory.getInventoryId(),
@@ -215,10 +214,31 @@ public class EntityDTOConverter {
 
     public Inventory getInventory(Inventorydto inventorydto) {
         return new Inventory(
-                inventorydto.getId(), // DTO uses 'id', Entity uses 'inventoryId'
+                inventorydto.getId(),
                 inventorydto.getProductId(),
                 inventorydto.getCurrentStockBags(),
                 inventorydto.getLastUpdated()
+        );
+    }
+
+    // --- NEW: MachineMaintenance Conversions ---
+    public MachineMaintenancedto getMachineMaintenancedto(MachineMaintenance machineMaintenance) {
+        return new MachineMaintenancedto(
+                machineMaintenance.getMaintenanceId(),
+                machineMaintenance.getMachineName(),
+                machineMaintenance.getMaintenanceDate(),
+                machineMaintenance.getDescription(),
+                machineMaintenance.getCost()
+        );
+    }
+
+    public MachineMaintenance getMachineMaintenance(MachineMaintenancedto dto) {
+        return new MachineMaintenance(
+                dto.getMaintenanceId(),
+                dto.getMachineName(),
+                dto.getMaintenanceDate(),
+                dto.getDescription(),
+                dto.getCost()
         );
     }
 }
