@@ -8,5 +8,6 @@ public enum DAOTypes {
     RAW_PADDY,
     USER,
     MILLING_PROCESS,
-    FINISHED_PRODUCT // New entry
+    FINISHED_PRODUCT,
+    INVENTORY // New entry
 }

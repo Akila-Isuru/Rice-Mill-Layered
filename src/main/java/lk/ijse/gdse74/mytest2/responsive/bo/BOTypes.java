@@ -8,5 +8,6 @@ public enum BOTypes {
     USER,
     MILLING_PROCESS,
     RAW_PADDY,
-    FINISHED_PRODUCT // New entry
+    FINISHED_PRODUCT,
+    INVENTORY // New entry
 }

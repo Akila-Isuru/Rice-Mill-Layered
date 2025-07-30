@@ -11,6 +11,8 @@ import java.util.List;
 
 public class EntityDTOConverter {
 
+    // ... (Existing conversion methods for Customer, Farmer, Supplier, Employee, RawPaddy, MillingProcess, User) ...
+
     public Customersdto getCustomerDTO(Customer customer) {
         return new Customersdto(
                 customer.getCustomerId(),
@@ -179,7 +181,6 @@ public class EntityDTOConverter {
         return userList;
     }
 
-    // --- FinishedProduct Conversions ---
     public FinishedProductdto getFinishedProductdto(FinishedProduct finishedProduct) {
         return new FinishedProductdto(
                 finishedProduct.getProductId(),
@@ -199,6 +200,25 @@ public class EntityDTOConverter {
                 BigDecimal.valueOf(finishedProductdto.getPackageSize()), // Convert double to BigDecimal for Entity
                 finishedProductdto.getQuantityBags(),
                 finishedProductdto.getPricePerBag()
+        );
+    }
+
+    // --- NEW: Inventory Conversions ---
+    public Inventorydto getInventorydto(Inventory inventory) {
+        return new Inventorydto(
+                inventory.getInventoryId(),
+                inventory.getProductId(),
+                inventory.getCurrentStockBags(),
+                inventory.getLastUpdated()
+        );
+    }
+
+    public Inventory getInventory(Inventorydto inventorydto) {
+        return new Inventory(
+                inventorydto.getId(), // DTO uses 'id', Entity uses 'inventoryId'
+                inventorydto.getProductId(),
+                inventorydto.getCurrentStockBags(),
+                inventorydto.getLastUpdated()
         );
     }
 }
