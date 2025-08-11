@@ -266,7 +266,7 @@ public class CustomersController implements Initializable {
 
     @FXML
     void searchCustomer(KeyEvent event) {
-        // Handled by the search filter setup
+
     }
 
     @FXML

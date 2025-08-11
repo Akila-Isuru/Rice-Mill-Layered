@@ -32,16 +32,15 @@ public class MachineMaintenanceDAOImpl implements MachineMaintenanceDAO {
     public String getNextId() throws SQLException {
         ResultSet resultSet = SQLUtill.execute("SELECT maintenance_id FROM machine_maintenance ORDER BY maintenance_id DESC LIMIT 1");
         if (resultSet.next()) {
-            String lastId = resultSet.getString(1); // e.g., "MM001"
+            String lastId = resultSet.getString(1);
             try {
-                int lastIdNumber = Integer.parseInt(lastId.substring(2)); // Skip 'MM' and parse
-                return String.format("MM%03d", lastIdNumber + 1); // Increment and format
+                int lastIdNumber = Integer.parseInt(lastId.substring(2));
+                return String.format("MM%03d", lastIdNumber + 1);
             } catch (NumberFormatException e) {
-                // Handle cases where ID might not be in "MM001" format
-                return "MM001"; // Fallback to initial ID
+                return "MM001";
             }
         }
-        return "MM001"; // Initial ID if no records exist
+        return "MM001";
     }
 
     @Override

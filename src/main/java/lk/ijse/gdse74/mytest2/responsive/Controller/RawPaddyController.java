@@ -13,17 +13,17 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.FarmerBO;    // New import
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.RawPaddyBO; // New import
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.SupplierBO; // New import
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.FarmerBO;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.RawPaddyBO;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.SupplierBO;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
 import lk.ijse.gdse74.mytest2.responsive.dto.RawPaddydto;
 
-import java.math.BigDecimal; // Import BigDecimal
+import java.math.BigDecimal;
 import java.net.URL;
-import java.sql.Date;       // Use java.sql.Date for DB interaction
+import java.sql.Date;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
@@ -37,33 +37,30 @@ public class RawPaddyController implements Initializable {
     @FXML private Button btnSave;
     @FXML private Button btnUpdate;
     @FXML private TableColumn<RawPaddydto,String> colFarmer_id;
-    @FXML private TableColumn<RawPaddydto,BigDecimal> colMoisture_level; // Changed to BigDecimal
+    @FXML private TableColumn<RawPaddydto,BigDecimal> colMoisture_level;
     @FXML private TableColumn<RawPaddydto,String> colPaddy_id;
-    @FXML private TableColumn<RawPaddydto,BigDecimal> colPrice_per_kg;   // Changed to BigDecimal
+    @FXML private TableColumn<RawPaddydto,BigDecimal> colPrice_per_kg;
     @FXML private TableColumn<RawPaddydto, Date> colPurchase_date;
-    @FXML private TableColumn<RawPaddydto,BigDecimal> colQuantity_Kg;    // Changed to BigDecimal
+    @FXML private TableColumn<RawPaddydto,BigDecimal> colQuantity_Kg;
     @FXML private TableColumn<RawPaddydto,String> colSupplier_id;
     @FXML private TableView<RawPaddydto> table;
     @FXML private ComboBox<String> cmbFarmer_id;
     @FXML private TextField txtMoisture_level;
     @FXML private TextField txtPaddy_id;
-    @FXML private DatePicker dpPurchase_date; // Changed to DatePicker for better UX
+    @FXML private DatePicker dpPurchase_date;
     @FXML private TextField txtPurchase_price_per_kg;
     @FXML private TextField txtQuantity_kg;
     @FXML private ComboBox<String> cmbSupplier_id;
-    @FXML private TextField txtSearch; // Added search field
-    @FXML private Label lblRawPaddyCount; // Added count label
+    @FXML private TextField txtSearch;
+    @FXML private Label lblRawPaddyCount;
 
-    // BO instances
     private final RawPaddyBO rawPaddyBO = BOFactory.getInstance().getBO(BOTypes.RAW_PADDY);
     private final SupplierBO supplierBO = BOFactory.getInstance().getBO(BOTypes.SUPPLIER);
     private final FarmerBO farmerBO = BOFactory.getInstance().getBO(BOTypes.FARMER);
 
-    // ObservableList for table data and filtering
     private ObservableList<RawPaddydto> rawPaddyMasterData = FXCollections.observableArrayList();
 
-    // Validation patterns (simplified for numbers, as parsing to BigDecimal handles format)
-    private final String numericPattern = "^\\d*\\.?\\d+$"; // For quantity, moisture, price
+    private final String numericPattern = "^\\d*\\.?\\d+$";
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -73,9 +70,8 @@ public class RawPaddyController implements Initializable {
             loadTable();
             loadSupplierIds();
             loadFarmerIds();
-            setupFieldListeners(); // Unified listener for all fields
-            setupSearchFilter(); // Setup search functionality
-            //updateButtonStates(); // Set initial button states
+            setupFieldListeners();
+            setupSearchFilter();
             fillCurrentDate();
         } catch (SQLException e) {
             new Alert(Alert.AlertType.ERROR, "Initialization Error: " + e.getMessage()).show();
@@ -128,23 +124,22 @@ public class RawPaddyController implements Initializable {
         try {
             String nextId = rawPaddyBO.getNextId();
             txtPaddy_id.setText(nextId);
-            txtPaddy_id.setEditable(false); // Make ID field uneditable
+            txtPaddy_id.setEditable(false);
         } catch (Exception e) {
             new Alert(Alert.AlertType.ERROR, "Failed to generate next ID: " + e.getMessage()).show();
-            txtPaddy_id.setText("P001"); // Fallback
+            txtPaddy_id.setText("P001");
             txtPaddy_id.setEditable(false);
         }
     }
 
     private void fillCurrentDate() {
-        dpPurchase_date.setValue(LocalDate.now()); // Set DatePicker to current date
+        dpPurchase_date.setValue(LocalDate.now());
     }
 
-    // New: Unified listener for all fields and combo boxes
     private void setupFieldListeners() {
         txtQuantity_kg.textProperty().addListener((observable, oldValue, newValue) -> {
-            calculateMoistureLevel(newValue); // Calculate moisture
-            updateButtonStatesAndStyles(); // Update buttons and styles
+            calculateMoistureLevel(newValue);
+            updateButtonStatesAndStyles();
         });
         txtMoisture_level.textProperty().addListener((observable, oldValue, newValue) -> updateButtonStatesAndStyles());
         txtPurchase_price_per_kg.textProperty().addListener((observable, oldValue, newValue) -> updateButtonStatesAndStyles());
@@ -163,31 +158,30 @@ public class RawPaddyController implements Initializable {
             BigDecimal quantity = new BigDecimal(quantityStr);
             BigDecimal moistureLevel;
 
-            if (quantity.compareTo(new BigDecimal(50)) < 0) { // quantity < 50
+            if (quantity.compareTo(new BigDecimal(50)) < 0) {
                 moistureLevel = new BigDecimal("12.5");
-            } else if (quantity.compareTo(new BigDecimal(100)) < 0) { // quantity < 100
+            } else if (quantity.compareTo(new BigDecimal(100)) < 0) {
                 moistureLevel = new BigDecimal("12.0");
-            } else if (quantity.compareTo(new BigDecimal(200)) < 0) { // quantity < 200
+            } else if (quantity.compareTo(new BigDecimal(200)) < 0) {
                 moistureLevel = new BigDecimal("11.5");
             } else {
                 moistureLevel = new BigDecimal("11.0");
             }
             txtMoisture_level.setText(String.format("%.1f", moistureLevel));
         } catch (NumberFormatException e) {
-            txtMoisture_level.clear(); // Clear if input is not a valid number
+            txtMoisture_level.clear();
         }
     }
 
-    // Central method to update button states and apply validation styles
     private void updateButtonStatesAndStyles() {
-        boolean isValidInput = validateInputFields(false); // Validate without showing alerts
+        boolean isValidInput = validateInputFields(false);
         RawPaddydto selectedItem = table.getSelectionModel().getSelectedItem();
 
-        if (selectedItem == null) { // No item selected (new entry mode)
+        if (selectedItem == null) {
             btnSave.setDisable(!isValidInput);
             btnUpdate.setDisable(true);
             btnDelete.setDisable(true);
-        } else { // Item selected (update/delete mode)
+        } else {
             btnSave.setDisable(true);
             btnUpdate.setDisable(!isValidInput);
             btnDelete.setDisable(false);
@@ -195,7 +189,6 @@ public class RawPaddyController implements Initializable {
         applyValidationStyles();
     }
 
-    // Consolidated validation method. showDialog parameter controls alert visibility.
     private boolean validateInputFields(boolean showDialog) {
         String quantityStr = txtQuantity_kg.getText().trim();
         String priceStr = txtPurchase_price_per_kg.getText().trim();
@@ -203,13 +196,11 @@ public class RawPaddyController implements Initializable {
         String selectedSupplierId = cmbSupplier_id.getValue();
         String selectedFarmerId = cmbFarmer_id.getValue();
 
-        // 1. Check for empty required fields
         if (quantityStr.isEmpty() || priceStr.isEmpty() || purchaseDate == null) {
             if (showDialog) new Alert(Alert.AlertType.ERROR, "Quantity, Purchase Price, and Purchase Date are required.").show();
             return false;
         }
 
-        // 2. Check for at least one ID selected
         boolean isSupplierSelected = selectedSupplierId != null && !selectedSupplierId.trim().isEmpty();
         boolean isFarmerSelected = selectedFarmerId != null && !selectedFarmerId.trim().isEmpty();
         if (!isSupplierSelected && !isFarmerSelected) {
@@ -217,11 +208,10 @@ public class RawPaddyController implements Initializable {
             return false;
         }
 
-        // 3. Validate numeric formats
         try {
             new BigDecimal(quantityStr);
             new BigDecimal(priceStr);
-            if (!txtMoisture_level.getText().trim().isEmpty()) { // Moisture is optional
+            if (!txtMoisture_level.getText().trim().isEmpty()) {
                 new BigDecimal(txtMoisture_level.getText().trim());
             }
         } catch (NumberFormatException e) {
@@ -232,7 +222,6 @@ public class RawPaddyController implements Initializable {
         return true;
     }
 
-    // Apply red/blue borders for real-time validation feedback
     private void applyValidationStyles() {
         boolean isQuantityValid = txtQuantity_kg.getText().trim().matches(numericPattern) && !txtQuantity_kg.getText().trim().isEmpty();
         boolean isPriceValid = txtPurchase_price_per_kg.getText().trim().matches(numericPattern) && !txtPurchase_price_per_kg.getText().trim().isEmpty();
@@ -240,22 +229,19 @@ public class RawPaddyController implements Initializable {
         txtQuantity_kg.setStyle(isQuantityValid ? "-fx-border-color: blue" : "-fx-border-color: red");
         txtPurchase_price_per_kg.setStyle(isPriceValid ? "-fx-border-color: blue" : "-fx-border-color: red");
 
-        // Optional moisture level validation style
         String moistureText = txtMoisture_level.getText().trim();
         if (!moistureText.isEmpty()) {
             boolean isMoistureValid = moistureText.matches(numericPattern);
             txtMoisture_level.setStyle(isMoistureValid ? "-fx-border-color: blue" : "-fx-border-color: red");
         } else {
-            txtMoisture_level.setStyle(""); // Clear style if empty
+            txtMoisture_level.setStyle("");
         }
 
-        // Clear red border if fields become empty (but overall `isValidInput` still prevents save/update)
         if (txtQuantity_kg.getText().trim().isEmpty()) txtQuantity_kg.setStyle("");
         if (txtPurchase_price_per_kg.getText().trim().isEmpty()) txtPurchase_price_per_kg.setStyle("");
 
-        // DatePicker styling is less common via CSS, usually handled by checking its value
         dpPurchase_date.setStyle(dpPurchase_date.getValue() != null ? "-fx-border-color: blue" : "-fx-border-color: red");
-        if (dpPurchase_date.getValue() == null) dpPurchase_date.setStyle(""); // Clear if empty
+        if (dpPurchase_date.getValue() == null) dpPurchase_date.setStyle("");
     }
 
 
@@ -299,7 +285,7 @@ public class RawPaddyController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
                 String paddyId = txtPaddy_id.getText();
-                boolean isDeleted = rawPaddyBO.deleteRawPaddy(paddyId); // Use BO
+                boolean isDeleted = rawPaddyBO.deleteRawPaddy(paddyId);
 
                 if (isDeleted) {
                     new Alert(Alert.AlertType.INFORMATION, "Deleted Successfully!").show();
@@ -319,7 +305,7 @@ public class RawPaddyController implements Initializable {
 
     @FXML
     void btnSaveOnAction(ActionEvent event) {
-        if (!validateInputFields(true)) { // Show alerts for invalid input
+        if (!validateInputFields(true)) {
             return;
         }
 
@@ -342,7 +328,7 @@ public class RawPaddyController implements Initializable {
                     purchasedDate
             );
 
-            rawPaddyBO.saveRawPaddy(dto); // Use BO
+            rawPaddyBO.saveRawPaddy(dto);
 
             new Alert(Alert.AlertType.INFORMATION, "Saved Successfully!").show();
             clearFields();
@@ -361,7 +347,7 @@ public class RawPaddyController implements Initializable {
 
     @FXML
     void btnUpdateOnAction(ActionEvent event) {
-        if (!validateInputFields(true)) { // Show alerts for invalid input
+        if (!validateInputFields(true)) {
             return;
         }
 
@@ -391,7 +377,7 @@ public class RawPaddyController implements Initializable {
                         purchasedDate
                 );
 
-                rawPaddyBO.updateRawPaddy(dto); // Use BO
+                rawPaddyBO.updateRawPaddy(dto);
 
                 new Alert(Alert.AlertType.INFORMATION, "Updated Successfully!").show();
                 clearFields();
@@ -419,8 +405,8 @@ public class RawPaddyController implements Initializable {
             txtQuantity_kg.setText(selectedItem.getQuantity() != null ? selectedItem.getQuantity().toPlainString() : "");
             txtMoisture_level.setText(selectedItem.getMoisture() != null ? selectedItem.getMoisture().toPlainString() : "");
             txtPurchase_price_per_kg.setText(selectedItem.getPurchasePrice() != null ? selectedItem.getPurchasePrice().toPlainString() : "");
-            dpPurchase_date.setValue(selectedItem.getPurchaseDate() != null ? LocalDate.parse(selectedItem.getPurchaseDate().toLocaleString()) : null); // Convert to LocalDate
-            updateButtonStatesAndStyles(); // Update buttons based on selection
+            dpPurchase_date.setValue(selectedItem.getPurchaseDate() != null ? LocalDate.parse(selectedItem.getPurchaseDate().toLocaleString()) : null);
+            updateButtonStatesAndStyles();
         }
     }
 
@@ -432,17 +418,16 @@ public class RawPaddyController implements Initializable {
         cmbSupplier_id.setValue(null);
         cmbFarmer_id.getSelectionModel().clearSelection();
         cmbFarmer_id.setValue(null);
-        txtSearch.clear(); // Clear search field
+        txtSearch.clear();
 
         loadNextId();
         fillCurrentDate();
-        table.getSelectionModel().clearSelection(); // Clear table selection
-        updateButtonStatesAndStyles(); // Reset button states and styles
+        table.getSelectionModel().clearSelection();
+        updateButtonStatesAndStyles();
     }
 
     @FXML
     void searchRawPaddy(KeyEvent event) {
-        // Handled by setupSearchFilter method
     }
 
     @FXML

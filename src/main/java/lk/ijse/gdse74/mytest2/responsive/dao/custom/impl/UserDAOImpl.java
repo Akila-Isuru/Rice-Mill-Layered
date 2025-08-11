@@ -120,6 +120,6 @@ public class UserDAOImpl implements UserDAO {
         if (resultSet.next()) {
             return resultSet.getString("user_id");
         }
-        return null; // Return null if no users exist
+        return null;
     }
 }

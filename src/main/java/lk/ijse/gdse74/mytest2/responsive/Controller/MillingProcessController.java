@@ -67,7 +67,7 @@ public class MillingProcessController implements Initializable {
     private LocalTime currentStartTime;
     private ObservableList<MillingProcessdto> millingProcessMasterData = FXCollections.observableArrayList();
 
-    // Initialize BO instances using BOFactory
+
     private final MillingProcessBO millingProcessBO = BOFactory.getInstance().getBO(BOTypes.MILLING_PROCESS);
     private final RawPaddyBO rawPaddyBO = BOFactory.getInstance().getBO(BOTypes.RAW_PADDY);
 
@@ -444,9 +444,8 @@ public class MillingProcessController implements Initializable {
             endMinuteSpinner.getValueFactory().setValue(process.getEndTime().getMinute());
             endSecondSpinner.getValueFactory().setValue(process.getEndTime().getSecond());
 
-            // Set overrideEnabled to true and update the button/editable state
-            // This ensures that when an item is selected, byproduct fields are editable
-            overrideEnabled = true; // Assume loaded values might be custom or need editing
+
+            overrideEnabled = true;
             txtBrokenRice.setEditable(true);
             txtHusk.setEditable(true);
             txtBran.setEditable(true);
@@ -556,6 +555,6 @@ public class MillingProcessController implements Initializable {
 
     @FXML
     void searchRawPaddy(KeyEvent event) {
-        // The actual filtering logic is handled by the listener in setupSearchFilter()
+
     }
 }

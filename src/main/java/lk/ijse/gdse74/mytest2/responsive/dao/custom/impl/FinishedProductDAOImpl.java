@@ -99,7 +99,7 @@ public class FinishedProductDAOImpl implements FinishedProductDAO {
 
     @Override
     public boolean reduceQuantity(String productId, int quantityToReduce) throws SQLException {
-        // This method will be used by the SalesOrder BO/DAO to update stock
+
         return SQLUtill.execute(
                 "UPDATE finished_product SET total_quantity_bags = total_quantity_bags - ? WHERE product_id = ?",
                 quantityToReduce,

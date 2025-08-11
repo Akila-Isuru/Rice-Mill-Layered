@@ -8,9 +8,9 @@ import java.sql.SQLException;
 public interface UserDAO extends CrudDAO<User, String> {
     User search(String id) throws SQLException, ClassNotFoundException;
 
-    // Specific methods for UserDAO if any, beyond generic CRUD
+
     User getUserByUsernameAndPassword(String username, String password) throws SQLException, ClassNotFoundException;
     String getPasswordByEmail(String email) throws SQLException, ClassNotFoundException;
     String getLastId() throws SQLException, ClassNotFoundException;
-    // CrudDAO already provides save, update, delete, search, getAll
+
 }

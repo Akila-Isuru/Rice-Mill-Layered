@@ -46,22 +46,21 @@ public class InventoryController implements Initializable {
     @FXML private TextField txt_CurrentStock;
     @FXML private Label lblStockStatus;
 
-    // BO instance using BOFactory
     private final InventoryBO inventoryBO = BOFactory.getInstance().getBO(BOTypes.INVENTORY);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellValueFactories();
-        setupFieldListeners(); // Set up listeners first
+        setupFieldListeners();
 
         try {
             loadNextId();
             txtLatUpdated.setText(LocalDate.now().toString());
             txtLatUpdated.setEditable(false);
-            loadProductIds(); // Load product IDs from FinishedProductBO
-            loadTable(); // Load table data
-            updateButtonStates(); // Set initial button states
-            lblStockStatus.setVisible(false); // Hide status label initially
+            loadProductIds();
+            loadTable();
+            updateButtonStates();
+            lblStockStatus.setVisible(false);
         } catch (SQLException e) {
             showAlert(Alert.AlertType.ERROR, "Initialization Error: " + e.getMessage());
             e.printStackTrace();
@@ -83,19 +82,18 @@ public class InventoryController implements Initializable {
                 ObservableList<Inventorydto> inventory = FXCollections.observableArrayList(inventorydtos);
                 table.setItems(inventory);
 
-                // Apply row styling for stock levels
                 table.setRowFactory(tv -> new TableRow<Inventorydto>() {
                     @Override
                     protected void updateItem(Inventorydto item, boolean empty) {
                         super.updateItem(item, empty);
-                        setStyle(""); // Reset style
+                        setStyle("");
                         if (item == null || empty) {
-                            // No item, no style
+
                         } else {
                             if (item.getCurrentStockBags() < CRITICAL_STOCK_THRESHOLD) {
-                                setStyle("-fx-background-color: #ffdddd; -fx-font-weight: bold;"); // Light red
+                                setStyle("-fx-background-color: #ffdddd; -fx-font-weight: bold;");
                             } else if (item.getCurrentStockBags() < LOW_STOCK_THRESHOLD) {
-                                setStyle("-fx-background-color: #fff3cd;"); // Light yellow
+                                setStyle("-fx-background-color: #fff3cd;");
                             }
                         }
                     }
@@ -114,11 +112,10 @@ public class InventoryController implements Initializable {
     private void loadNextId() throws SQLException {
         String nextId = inventoryBO.getNextInventoryId();
         txtId.setText(nextId);
-        txtId.setDisable(true); // Always disabled as it's auto-generated
+        txtId.setDisable(true);
     }
 
     private void loadProductIds() throws SQLException {
-        // Now getting product IDs directly from InventoryBO (which calls FinishedProductDAO)
         List<String> productIdList = inventoryBO.getAllFinishedProductIdsForInventory();
         ObservableList<String> productIds = FXCollections.observableArrayList(productIdList);
         cmbProductId.setItems(productIds);
@@ -128,20 +125,20 @@ public class InventoryController implements Initializable {
         cmbProductId.valueProperty().addListener((observable, oldValue, newValue) -> updateButtonStates());
         txt_CurrentStock.textProperty().addListener((observable, oldValue, newValue) -> {
             updateButtonStates();
-            validateStockInput(); // Re-check stock status when stock text changes
+            validateStockInput();
         });
         table.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> updateButtonStates());
     }
 
     private void updateButtonStates() {
-        boolean isValidInput = validateInputs(false); // Validate without showing dialogs
+        boolean isValidInput = validateInputs(false);
         Inventorydto selectedItem = table.getSelectionModel().getSelectedItem();
 
-        if (selectedItem == null) { // No item selected (new record mode)
+        if (selectedItem == null) {
             btnSave.setDisable(!isValidInput);
             btnUpdate.setDisable(true);
             btnDelete.setDisable(true);
-        } else { // Item selected (edit/delete mode)
+        } else {
             btnSave.setDisable(true);
             btnUpdate.setDisable(!isValidInput);
             btnDelete.setDisable(false);
@@ -180,12 +177,12 @@ public class InventoryController implements Initializable {
         txtLatUpdated.clear();
         txt_CurrentStock.clear();
         cmbProductId.getSelectionModel().clearSelection();
-        loadNextId(); // Generate new ID for next save
-        txtLatUpdated.setText(LocalDate.now().toString()); // Set current date
-        loadTable(); // Reload table to reflect changes
-        table.getSelectionModel().clearSelection(); // Clear table selection
-        updateButtonStates(); // Reset button states
-        lblStockStatus.setVisible(false); // Hide status label
+        loadNextId();
+        txtLatUpdated.setText(LocalDate.now().toString());
+        loadTable();
+        table.getSelectionModel().clearSelection();
+        updateButtonStates();
+        lblStockStatus.setVisible(false);
     }
 
     private boolean validateInputs(boolean showDialog) {
@@ -210,13 +207,11 @@ public class InventoryController implements Initializable {
             return false;
         }
 
-        // txtLatUpdated is auto-set to LocalDate.now(), no need for format validation here unless user can edit it
-        if (txtLatUpdated.getText().isEmpty()) { // Should not happen with auto-set date
+        if (txtLatUpdated.getText().isEmpty()) {
             if (showDialog) showAlert(Alert.AlertType.ERROR, "Last Updated date cannot be empty.");
             return false;
         }
 
-        // Basic date format validation if it's user-editable, otherwise `Date.valueOf` will throw
         try {
             Date.valueOf(txtLatUpdated.getText());
         } catch (IllegalArgumentException e) {
@@ -233,7 +228,7 @@ public class InventoryController implements Initializable {
             alert.setTitle(alertType.name().replace("_", " "));
             alert.setHeaderText(null);
             alert.setContentText(message);
-            alert.showAndWait(); // Use showAndWait for user to acknowledge
+            alert.showAndWait();
         });
     }
 
@@ -243,8 +238,8 @@ public class InventoryController implements Initializable {
             alert.setTitle(title);
             alert.setHeaderText(null);
             alert.setContentText(content);
-            alert.initOwner(table.getScene().getWindow()); // Attach to the window
-            alert.show(); // Use show for non-blocking alerts
+            alert.initOwner(table.getScene().getWindow());
+            alert.show();
         });
     }
 
@@ -282,7 +277,7 @@ public class InventoryController implements Initializable {
 
     @FXML
     void btnSaveOnAction(ActionEvent event) {
-        if (!validateInputs(true)) return; // Validate with dialogs
+        if (!validateInputs(true)) return;
 
         int currentStock = Integer.parseInt(txt_CurrentStock.getText());
         Date lastUpdate = Date.valueOf(txtLatUpdated.getText());
@@ -316,7 +311,7 @@ public class InventoryController implements Initializable {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            if (!validateInputs(true)) return; // Validate with dialogs
+            if (!validateInputs(true)) return;
 
             int currentStock = Integer.parseInt(txt_CurrentStock.getText());
             Date lastUpdate = Date.valueOf(txtLatUpdated.getText());
@@ -348,17 +343,17 @@ public class InventoryController implements Initializable {
             int stock = Integer.parseInt(txt_CurrentStock.getText());
             if (stock < CRITICAL_STOCK_THRESHOLD) {
                 lblStockStatus.setText("CRITICAL STOCK LEVEL!");
-                lblStockStatus.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;"); // Red, bold
+                lblStockStatus.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
                 lblStockStatus.setVisible(true);
             } else if (stock < LOW_STOCK_THRESHOLD) {
                 lblStockStatus.setText("LOW STOCK WARNING");
-                lblStockStatus.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;"); // Orange, bold
+                lblStockStatus.setStyle("-fx-text-fill: #f39c12; -fx-font-weight: bold;");
                 lblStockStatus.setVisible(true);
             } else {
                 lblStockStatus.setVisible(false);
             }
         } catch (NumberFormatException e) {
-            lblStockStatus.setVisible(false); // Hide if input is not a valid number
+            lblStockStatus.setVisible(false);
         }
     }
 
@@ -372,8 +367,8 @@ public class InventoryController implements Initializable {
         txt_CurrentStock.setText(String.valueOf(selectedItem.getCurrentStockBags()));
         txtLatUpdated.setText(String.valueOf(selectedItem.getLastUpdated()));
 
-        updateButtonStates(); // Update button states based on selection
-        validateStockInput(); // Re-validate stock status for selected item
+        updateButtonStates();
+        validateStockInput();
     }
 
     @FXML
@@ -381,18 +376,17 @@ public class InventoryController implements Initializable {
         String selectedProductId = cmbProductId.getSelectionModel().getSelectedItem();
         if (selectedProductId != null && !selectedProductId.isEmpty()) {
             try {
-                // Fetch the total_quantity_bags from FinishedProductBO
                 int quantity = inventoryBO.getFinishedProductCurrentQuantity(selectedProductId);
                 txt_CurrentStock.setText(String.valueOf(quantity));
-                validateStockInput(); // Re-validate stock status after autofilling
+                validateStockInput();
             } catch (SQLException | NotFoundException e) {
                 e.printStackTrace();
                 showAlert(Alert.AlertType.ERROR, "Error fetching product quantity for " + selectedProductId + ": " + e.getMessage());
-                txt_CurrentStock.clear(); // Clear if an error occurs
+                txt_CurrentStock.clear();
             }
         } else {
-            txt_CurrentStock.clear(); // Clear if no product is selected
+            txt_CurrentStock.clear();
         }
-        updateButtonStates(); // Update button states as combo box selection changes
+        updateButtonStates();
     }
 }

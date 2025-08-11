@@ -42,20 +42,20 @@ public class MachineMaintenanceController implements Initializable {
     @FXML private TextField txtmain_date;
     @FXML private TextField txtmain_id;
 
-    // Use BOFactory to get BO instance
+
     private final MachineMaintenanceBO machineMaintenanceBO = BOFactory.getInstance().getBO(BOTypes.MACHINE_MAINTENANCE);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellValueFactories();
-        setupFieldListeners(); // Set up listeners first
+        setupFieldListeners();
 
         try {
             loadNextId();
-            txtmain_date.setText(LocalDate.now().toString()); // Set current date by default
-            // txtmain_date.setEditable(false); // Make it read-only if always current date
+            txtmain_date.setText(LocalDate.now().toString());
+
             loadTable();
-            updateButtonStates(); // Set initial button states
+            updateButtonStates();
         } catch (SQLException e) {
             showAlert(Alert.AlertType.ERROR, "Initialization Error: " + e.getMessage());
             e.printStackTrace();
@@ -97,21 +97,21 @@ public class MachineMaintenanceController implements Initializable {
 
         MachineMaintenancedto selectedItem = table.getSelectionModel().getSelectedItem();
 
-        if (selectedItem == null) { // No item selected (new record mode)
-            btnSave.setDisable(isAnyFieldEmpty); // Enable save only if all fields are filled
+        if (selectedItem == null) {
+            btnSave.setDisable(isAnyFieldEmpty);
             btnUpdate.setDisable(true);
             btnDelete.setDisable(true);
-        } else { // Item selected (edit/delete mode)
-            btnSave.setDisable(true); // Disable save
-            btnUpdate.setDisable(isAnyFieldEmpty); // Enable update only if all fields are filled
-            btnDelete.setDisable(false); // Always enable delete if an item is selected
+        } else {
+            btnSave.setDisable(true);
+            btnUpdate.setDisable(isAnyFieldEmpty);
+            btnDelete.setDisable(false);
         }
     }
 
     private void loadNextId() throws SQLException {
         String nextId = machineMaintenanceBO.getNextMaintenanceId();
         txtmain_id.setText(nextId);
-        txtmain_id.setDisable(true); // Always disabled as it's auto-generated
+        txtmain_id.setDisable(true);
     }
 
     private void clearFields() throws SQLException {
@@ -120,11 +120,11 @@ public class MachineMaintenanceController implements Initializable {
         txtdescription.clear();
         txtcost.clear();
 
-        loadNextId(); // Generate new ID for next save
-        txtmain_date.setText(LocalDate.now().toString()); // Reset current date
-        loadTable(); // Refresh table to reflect changes
-        table.getSelectionModel().clearSelection(); // Clear table selection
-        updateButtonStates(); // Reset button states
+        loadNextId();
+        txtmain_date.setText(LocalDate.now().toString());
+        loadTable();
+        table.getSelectionModel().clearSelection();
+        updateButtonStates();
     }
 
     private boolean validateFields(boolean showDialog) {
@@ -136,7 +136,7 @@ public class MachineMaintenanceController implements Initializable {
 
         try {
             int cost = Integer.parseInt(txtcost.getText());
-            if (cost < 0) { // Costs usually can't be negative
+            if (cost < 0) {
                 if (showDialog) showAlert(Alert.AlertType.ERROR, "Cost cannot be negative.");
                 return false;
             }
@@ -145,11 +145,6 @@ public class MachineMaintenanceController implements Initializable {
             return false;
         }
 
-        // Basic date format validation for maintenance_date (varchar)
-        // If you were to change maintenance_date to a proper DATE type in the DB,
-        // you would use LocalDate.parse(txtmain_date.getText()) or a DatePicker.
-        // For String, a regex or a simple check for YYYY-MM-DD pattern could be added if strict.
-        // For now, assuming user inputs valid string date.
 
         return true;
     }
@@ -198,11 +193,11 @@ public class MachineMaintenanceController implements Initializable {
 
     @FXML
     void btnSaveOnAction(ActionEvent event) {
-        if (!validateFields(true)) { // Validate with dialogs
+        if (!validateFields(true)) {
             return;
         }
 
-        int cost = Integer.parseInt(txtcost.getText()); // Already validated to be a number
+        int cost = Integer.parseInt(txtcost.getText());
 
         MachineMaintenancedto dto = new MachineMaintenancedto(
                 txtmain_id.getText(),
@@ -233,11 +228,11 @@ public class MachineMaintenanceController implements Initializable {
 
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            if (!validateFields(true)) { // Validate with dialogs
+            if (!validateFields(true)) {
                 return;
             }
 
-            int cost = Integer.parseInt(txtcost.getText()); // Already validated to be a number
+            int cost = Integer.parseInt(txtcost.getText());
 
             MachineMaintenancedto dto = new MachineMaintenancedto(
                     txtmain_id.getText(),
@@ -270,7 +265,7 @@ public class MachineMaintenanceController implements Initializable {
             txtdescription.setText(selectedItem.getDescription());
             txtcost.setText(String.valueOf(selectedItem.getCost()));
 
-            updateButtonStates(); // Update button states based on selection
+            updateButtonStates();
         }
     }
 }

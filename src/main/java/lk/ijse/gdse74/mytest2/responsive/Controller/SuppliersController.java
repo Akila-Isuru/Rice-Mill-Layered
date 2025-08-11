@@ -272,7 +272,7 @@ public class SuppliersController implements Initializable {
         Suppliersdto suppliersdto = new Suppliersdto(
                 txtId.getText(),
                 txtName.getText().trim(),
-                txtContact_number.getText().trim(), // This UI field maps to cotactNumber in DTO
+                txtContact_number.getText().trim(),
                 txtaddress.getText().trim(),
                 txtemail.getText().trim()
         );
@@ -308,7 +308,7 @@ public class SuppliersController implements Initializable {
         if (suppliersdto != null) {
             txtId.setText(suppliersdto.getSupplierId());
             txtName.setText(suppliersdto.getName());
-            txtContact_number.setText(suppliersdto.getCotactNumber()); // Changed to getCotactNumber
+            txtContact_number.setText(suppliersdto.getCotactNumber());
             txtaddress.setText(suppliersdto.getAddress());
             txtemail.setText(suppliersdto.getEmail());
             txtNameChange(null);
@@ -344,7 +344,7 @@ public class SuppliersController implements Initializable {
 
     @FXML
     void searchSupplier(KeyEvent event) {
-        // Handled by the setupSearchFilter method
+
     }
 
     @FXML

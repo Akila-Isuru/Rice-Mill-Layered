@@ -15,12 +15,12 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.UserBO; // Import UserBO
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.UserBO;
 import lk.ijse.gdse74.mytest2.responsive.dto.Usersdto;
 
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.List; // Use List instead of ArrayList for consistency
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -94,9 +94,8 @@ public class UsersController implements Initializable {
 
     private final String namePattern = "^[A-Za-z ]+$";
     private final String emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
-    private final String phonePattern = "^(?:0|\\+94|0094)?(?:[0-9]{9})$"; // Changed to match 10-digit number after optional prefix
+    private final String phonePattern = "^(?:0|\\+94|0094)?(?:[0-9]{9})$";
 
-    // Instantiate UserBO using the BOFactory
     private UserBO userBO = (UserBO) BOFactory.getInstance().getBO(BOTypes.USER);
 
     @Override
@@ -122,9 +121,8 @@ public class UsersController implements Initializable {
             updatePasswordStrength(newValue);
         });
 
-        // This listener ensures that if password is typed in visible field, strength is updated
         txtPasswordVisible.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (passwordVisible) { // Only update if visible field is active
+            if (passwordVisible) {
                 updatePasswordStrength(newValue);
             }
         });
@@ -187,12 +185,11 @@ public class UsersController implements Initializable {
         if (password.length() >= 8) strength++;
         if (password.length() >= 12) strength++;
 
-        if (!password.equals(password.toLowerCase())) strength++; // Contains uppercase
-        if (!password.equals(password.toUpperCase())) strength++; // Contains lowercase (ensure both are not same case)
+        if (!password.equals(password.toLowerCase())) strength++;
+        if (!password.equals(password.toUpperCase())) strength++;
 
-        if (password.matches(".*\\d.*")) strength++; // Contains a digit
+        if (password.matches(".*\\d.*")) strength++;
 
-        // Check for special characters
         if (password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>/?].*")) strength++;
 
         return Math.min(strength, 4);
@@ -200,7 +197,7 @@ public class UsersController implements Initializable {
 
     private void loadNextId() throws SQLException, ClassNotFoundException {
         try {
-            String nextId = userBO.getNextUserId(); // Use BO to get next ID
+            String nextId = userBO.getNextUserId();
             txtId.setText(nextId);
             txtId.setEditable(false);
             System.out.println("DEBUG: Next ID retrieved: " + nextId);
@@ -208,7 +205,7 @@ public class UsersController implements Initializable {
             System.err.println("ERROR in loadNextId: " + e.getMessage());
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error loading next ID").show();
-            throw e; // Re-throw to indicate a critical error during initialization
+            throw e;
         }
     }
 
@@ -220,14 +217,14 @@ public class UsersController implements Initializable {
         colrole.setCellValueFactory(new PropertyValueFactory<>("role"));
         colcontact_number.setCellValueFactory(new PropertyValueFactory<>("contact_number"));
         try {
-            List<Usersdto> usersdtos = userBO.getAllUsers(); // Use BO to get all users
+            List<Usersdto> usersdtos = userBO.getAllUsers();
             if (usersdtos != null) {
                 ObservableList<Usersdto> users = FXCollections.observableArrayList(usersdtos);
                 table.setItems(users);
             }
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
-            throw e; // Re-throw to indicate error
+            throw e;
         }
     }
 
@@ -253,7 +250,7 @@ public class UsersController implements Initializable {
         Optional<ButtonType> result = confirmation.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                boolean isDeleted = userBO.deleteUser(id); // Use BO to delete
+                boolean isDeleted = userBO.deleteUser(id);
                 if (isDeleted) {
                     clearFields();
                     new Alert(Alert.AlertType.INFORMATION, "User deleted successfully").show();
@@ -278,7 +275,6 @@ public class UsersController implements Initializable {
         String role = cmbRole.getValue();
         String password = passwordVisible ? txtPasswordVisible.getText() : txtPassword.getText();
 
-        // Basic validation on text fields (more robust validation should be in BO/Entity)
         if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || role == null || password.isEmpty()) {
             new Alert(Alert.AlertType.ERROR, "Please fill all fields").show();
             return;
@@ -297,7 +293,7 @@ public class UsersController implements Initializable {
         Usersdto usersdto = new Usersdto(txtId.getText(), name, email, password, role, phone);
 
         try {
-            boolean isSaved = userBO.saveUser(usersdto); // Use BO to save
+            boolean isSaved = userBO.saveUser(usersdto);
             if (isSaved) {
                 clearFields();
                 new Alert(Alert.AlertType.INFORMATION, "User saved successfully").show();
@@ -329,7 +325,7 @@ public class UsersController implements Initializable {
         btnUpdate.setDisable(true);
 
         if (passwordVisible) {
-            togglePasswordVisibility(); // Revert to hidden password field
+            togglePasswordVisibility();
         }
     }
 
@@ -348,14 +344,13 @@ public class UsersController implements Initializable {
         String role = cmbRole.getValue();
         String password = passwordVisible ? txtPasswordVisible.getText() : txtPassword.getText();
 
-        // Basic validation
         if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || role == null || password.isEmpty()) {
             new Alert(Alert.AlertType.ERROR, "Please fill all fields").show();
             return;
         }
 
         boolean isValidName = name.matches(namePattern);
-        boolean isValidEmail = email.matches(emailPattern); // Check email as well for update
+        boolean isValidEmail = email.matches(emailPattern);
         boolean isValidPhone = phone.matches(phonePattern);
 
         if (!isValidName || !isValidEmail || !isValidPhone) {
@@ -364,7 +359,7 @@ public class UsersController implements Initializable {
         }
 
 
-        Usersdto usersdto = new Usersdto(id, name, email, password, role, phone); // Use id from txtId
+        Usersdto usersdto = new Usersdto(id, name, email, password, role, phone);
 
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
         confirmation.setTitle("Confirm Update");
@@ -374,7 +369,7 @@ public class UsersController implements Initializable {
         Optional<ButtonType> result = confirmation.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                boolean isUpdated = userBO.updateUser(usersdto); // Use BO to update
+                boolean isUpdated = userBO.updateUser(usersdto);
                 if (isUpdated) {
                     clearFields();
                     new Alert(Alert.AlertType.INFORMATION, "User updated successfully").show();
@@ -398,13 +393,12 @@ public class UsersController implements Initializable {
             txtId.setText(usersdto.getUser_id());
             txtName.setText(usersdto.getName());
             txtEmail.setText(usersdto.getEmail());
-            // Make sure the correct password field is updated based on visibility
             if (passwordVisible) {
                 txtPasswordVisible.setText(usersdto.getPassword());
-                txtPassword.setText(""); // Clear the hidden one if visible is active
+                txtPassword.setText("");
             } else {
                 txtPassword.setText(usersdto.getPassword());
-                txtPasswordVisible.setText(""); // Clear the visible one if hidden is active
+                txtPasswordVisible.setText("");
             }
             cmbRole.setValue(usersdto.getRole());
             txtContactNumber.setText(usersdto.getContact_number());
@@ -450,7 +444,7 @@ public class UsersController implements Initializable {
         String searchText = txtSearch.getText().toLowerCase();
         if (searchText.isEmpty()) {
             try {
-                loadTable(); // Reload full table if search bar is empty
+                loadTable();
                 return;
             } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -459,7 +453,6 @@ public class UsersController implements Initializable {
 
         ObservableList<Usersdto> filteredList = FXCollections.observableArrayList();
         try {
-            // Get all users from BO and filter them
             List<Usersdto> allUsers = userBO.getAllUsers();
             for (Usersdto user : allUsers) {
                 if (user.getUser_id().toLowerCase().contains(searchText) ||

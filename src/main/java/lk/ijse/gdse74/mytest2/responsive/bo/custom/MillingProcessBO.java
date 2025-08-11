@@ -15,4 +15,6 @@ public interface MillingProcessBO extends SuperBO {
     boolean deleteMillingProcess(String id) throws InUseException, SQLException;
     String getNextMillingProcessId() throws SQLException;
     boolean checkPaddyIdExistsInProcess(String paddyId) throws SQLException; // New method for business logic
+
+    MillingProcessdto getMillingProcessByMillingId(String millingId) throws SQLException, ClassNotFoundException;
 }

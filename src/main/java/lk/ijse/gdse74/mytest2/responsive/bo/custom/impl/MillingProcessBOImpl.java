@@ -104,4 +104,9 @@ public class MillingProcessBOImpl implements MillingProcessBO {
     public boolean checkPaddyIdExistsInProcess(String paddyId) throws SQLException {
         return millingProcessDAO.existsMillingProcessByPaddyId(paddyId);
     }
+    @Override
+    public MillingProcessdto getMillingProcessByMillingId(String millingId) throws SQLException, ClassNotFoundException {
+        Optional<MillingProcess> optionalProcess = millingProcessDAO.findById(millingId);
+        return optionalProcess.map(converter::getMillingProcessdto).orElse(null);
+    }
 }

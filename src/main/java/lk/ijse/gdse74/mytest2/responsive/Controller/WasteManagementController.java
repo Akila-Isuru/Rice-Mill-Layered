@@ -8,10 +8,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.MillingProcessBO;
 import lk.ijse.gdse74.mytest2.responsive.dto.MillingProcessdto;
 import lk.ijse.gdse74.mytest2.responsive.dto.WasteManagementdto;
 import lk.ijse.gdse74.mytest2.responsive.model.WasteManagementModel;
-import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel;
+//import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -73,6 +76,10 @@ public class WasteManagementController implements Initializable {
 
     @FXML
     private TextField txtrecorded_date;
+
+    private final MillingProcessBO millingProcessBO = BOFactory.getInstance().getBO(BOTypes.MILLING_PROCESS);
+
+
 
     @FXML
     void btnClearOnAction(ActionEvent event) {
@@ -145,7 +152,7 @@ public class WasteManagementController implements Initializable {
             if (isSave) {
                 clearFields();
                 new Alert(Alert.AlertType.INFORMATION, "Waste Management has been saved successfully").show();
-                loadTable(); // Refresh table after save
+                loadTable();
             } else {
                 new Alert(Alert.AlertType.ERROR, "Waste Management could not be saved").show();
             }
@@ -167,7 +174,6 @@ public class WasteManagementController implements Initializable {
             return;
         }
 
-        // Confirmation Alert
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Update Confirmation");
         alert.setHeaderText("Update Waste Record");
@@ -259,7 +265,7 @@ public class WasteManagementController implements Initializable {
 
     private void loadMillingIds() {
         try {
-            ObservableList<String> millingIds = FXCollections.observableArrayList(MillingProcessModel.getAllMillingIds());
+            ObservableList<String> millingIds = FXCollections.observableArrayList(millingProcessBO.getNextMillingProcessId());
             cmbMilling_id.setItems(millingIds);
         } catch (Exception e) {
             e.printStackTrace();
@@ -299,7 +305,7 @@ public class WasteManagementController implements Initializable {
         }
 
         try {
-            MillingProcessdto millingProcess = MillingProcessModel.getMillingProcessByMillingId(millingId);
+            MillingProcessdto millingProcess = millingProcessBO.getMillingProcessByMillingId(millingId);
             if (millingProcess != null) {
                 BigDecimal quantity = BigDecimal.valueOf(0.0);
                 switch (wasteType) {
@@ -329,7 +335,7 @@ public class WasteManagementController implements Initializable {
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error fetching quantity: " + e.getMessage()).show();
-            txtQuantity.clear(); // Clear on error
+            txtQuantity.clear();
         }
     }
 
@@ -361,7 +367,7 @@ public class WasteManagementController implements Initializable {
     }
 
     private void clearFields() {
-        loadNextId(); // Generate new ID
+        loadNextId();
         cmbMilling_id.getSelectionModel().clearSelection();
         cmbWaste_type.getSelectionModel().clearSelection();
         cmbDisposal_method.getSelectionModel().clearSelection();

@@ -45,21 +45,20 @@ public class FinishedProductController implements Initializable {
     @FXML private ComboBox<String> cmbProduct_type;
     @FXML private ComboBox<Double> cmbPackaging_size;
 
-    // BO instances using BOFactory
     private final FinishedProductBO finishedProductBO = BOFactory.getInstance().getBO(BOTypes.FINISHED_PRODUCT);
     private final MillingProcessBO millingProcessBO = BOFactory.getInstance().getBO(BOTypes.MILLING_PROCESS);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setCellValueFactories();
-        setupFieldListeners(); // Set up listeners before loading data
+        setupFieldListeners();
 
         loadNextId();
         loadTable();
         loadMillingIds();
         loadProductTypes();
         loadPackagingSizes();
-        updateButtonStates(); // Set initial button states
+        updateButtonStates();
     }
 
     private void setCellValueFactories() {
@@ -85,7 +84,7 @@ public class FinishedProductController implements Initializable {
         try {
             String nextId = finishedProductBO.getNextFinishedProductId();
             txtProduct_id.setText(nextId);
-            txtProduct_id.setDisable(true); // Should always be disabled
+            txtProduct_id.setDisable(true);
         } catch (SQLException e) {
             showAlert(Alert.AlertType.ERROR, "Failed to generate next ID: " + e.getMessage());
             e.printStackTrace();
@@ -137,14 +136,14 @@ public class FinishedProductController implements Initializable {
     }
 
     private void updateButtonStates() {
-        boolean isValidInput = validateFields(false); // Validate without showing dialogs
+        boolean isValidInput = validateFields(false);
         FinishedProductdto selectedItem = table.getSelectionModel().getSelectedItem();
 
-        if (selectedItem == null) { // No item selected (new record mode)
+        if (selectedItem == null) {
             btnSave.setDisable(!isValidInput);
             btnUpdate.setDisable(true);
             btnDelete.setDisable(true);
-        } else { // Item selected (edit/delete mode)
+        } else {
             btnSave.setDisable(true);
             btnUpdate.setDisable(!isValidInput);
             btnDelete.setDisable(false);
@@ -185,7 +184,7 @@ public class FinishedProductController implements Initializable {
 
     @FXML
     void btnSaveOnAction(ActionEvent event) {
-        if (!validateFields(true)) { // Validate with dialogs
+        if (!validateFields(true)) {
             return;
         }
 
@@ -223,7 +222,7 @@ public class FinishedProductController implements Initializable {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                if (!validateFields(true)) { // Validate with dialogs
+                if (!validateFields(true)) {
                     return;
                 }
 
@@ -262,7 +261,7 @@ public class FinishedProductController implements Initializable {
             txtQuantity_bags.setText(String.valueOf(selectedItem.getQuantityBags()));
             txtPricePer_bag.setText(String.valueOf(selectedItem.getPricePerBag()));
 
-            updateButtonStates(); // Update button states based on selection
+            updateButtonStates();
         }
     }
 
@@ -315,13 +314,11 @@ public class FinishedProductController implements Initializable {
 
         loadNextId();
         loadTable();
-        // No need to reload IDs/Types/Sizes unless their source data changes,
-        // but for simplicity/consistency with your original, keeping them here.
         loadMillingIds();
         loadProductTypes();
         loadPackagingSizes();
-        table.getSelectionModel().clearSelection(); // Clear selection after clearing fields
-        updateButtonStates(); // Reset button states
+        table.getSelectionModel().clearSelection();
+        updateButtonStates();
     }
 
     private void showAlert(Alert.AlertType type, String message) {

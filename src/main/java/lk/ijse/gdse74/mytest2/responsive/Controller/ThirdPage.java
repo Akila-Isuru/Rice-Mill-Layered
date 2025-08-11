@@ -3,9 +3,9 @@ package lk.ijse.gdse74.mytest2.responsive.Controller;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.text.Text;
-import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel;
-import lk.ijse.gdse74.mytest2.responsive.model.InventoryModel;
-import lk.ijse.gdse74.mytest2.responsive.model.SalesOrderModel;
+//import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel;
+//import lk.ijse.gdse74.mytest2.responsive.model.InventoryModel;
+//import lk.ijse.gdse74.mytest2.responsive.model.SalesOrderModel;
 import lk.ijse.gdse74.mytest2.responsive.dto.MillingProcessdto;
 import lk.ijse.gdse74.mytest2.responsive.dto.Inventorydto;
 import lk.ijse.gdse74.mytest2.responsive.dto.SalesOrderdto;
@@ -30,29 +30,29 @@ public class ThirdPage {
     private Text orderCountText;
 
     @FXML
-    private Label revenueLabel; // Changed from revenuTable to revenueLabel for consistency
+    private Label revenueLabel;
 
     @FXML
-    private Text revenueAmountText; // Text element for the revenue amount
+    private Text revenueAmountText;
 
     @FXML
     private void initialize() {
-        loadMillingData();
-        loadInventoryData();
-        loadOrderData();
-        loadRevenueData(); // Call the method to load revenue data
+        //loadMillingData();
+        //loadInventoryData();
+        //loadOrderData();
+        //loadRevenueData();
     }
 
-    private void loadMillingData() {
-        try {
-            ArrayList<MillingProcessdto> allProcesses = MillingProcessModel.viewAllMillingProcess();
-          //  double totalMilled = calculateTotalMilled(allProcesses);
-           // updateMillingLabel(totalMilled);
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            todayMillingLabel.setText("Error loading data");
-        }
-    }
+//    private void loadMillingData() {
+//        try {
+//           // ArrayList<MillingProcessdto> allProcesses = MillingProcessModel.viewAllMillingProcess();
+//          //  double totalMilled = calculateTotalMilled(allProcesses);
+//           // updateMillingLabel(totalMilled);
+//        } catch (SQLException | ClassNotFoundException e) {
+//            e.printStackTrace();
+//            todayMillingLabel.setText("Error loading data");
+//        }
+//    }
 
 //    private double calculateTotalMilled(ArrayList<MillingProcessdto> processes) {
 //        return processes.stream()
@@ -64,16 +64,16 @@ public class ThirdPage {
         todayMillingLabel.setText(String.format("%.2f Kg", quantity));
     }
 
-    private void loadInventoryData() {
-        try {
-            ArrayList<Inventorydto> allInventory = InventoryModel.viewAllInventory();
-            int totalStockBags = calculateTotalStockBags(allInventory);
-            updateInventoryBagsText(totalStockBags);
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            inventoryBagsText.setText("Error loading inventory");
-        }
-    }
+//    private void loadInventoryData() {
+//        try {
+//          //  ArrayList<Inventorydto> allInventory = InventoryModel.viewAllInventory();
+//           // int totalStockBags = calculateTotalStockBags(allInventory);
+//          //  updateInventoryBagsText(totalStockBags);
+//        } catch (SQLException | ClassNotFoundException e) {
+//            e.printStackTrace();
+//            inventoryBagsText.setText("Error loading inventory");
+//        }
+//    }
 
     private int calculateTotalStockBags(ArrayList<Inventorydto> inventoryList) {
         return inventoryList.stream()
@@ -85,31 +85,31 @@ public class ThirdPage {
         inventoryBagsText.setText(String.format("%,d Bags in stock", totalBags));
     }
 
-    private void loadOrderData() {
-        try {
-            ArrayList<SalesOrderdto> allOrders = SalesOrderModel.viewAllSalesOrder();
-            int orderCount = allOrders.size();
-            updateOrderLabel(orderCount);
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            orderCountText.setText("Error loading orders");
-        }
-    }
+//    private void loadOrderData() {
+//        try {
+//            ArrayList<SalesOrderdto> allOrders = SalesOrderModel.viewAllSalesOrder();
+//            int orderCount = allOrders.size();
+//            updateOrderLabel(orderCount);
+//        } catch (SQLException | ClassNotFoundException e) {
+//            e.printStackTrace();
+//            orderCountText.setText("Error loading orders");
+//        }
+//    }
 
     private void updateOrderLabel(int count) {
         orderCountText.setText(String.valueOf(count));
     }
 
-    private void loadRevenueData() {
-        try {
-            ArrayList<SalesOrderdto> allOrders = SalesOrderModel.viewAllSalesOrder();
-            double totalRevenue = calculateTotalRevenue(allOrders);
-            updateRevenueAmountText(totalRevenue);
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            revenueAmountText.setText("Error loading revenue");
-        }
-    }
+//    private void loadRevenueData() {
+//        try {
+//            ArrayList<SalesOrderdto> allOrders = SalesOrderModel.viewAllSalesOrder();
+//            double totalRevenue = calculateTotalRevenue(allOrders);
+//            updateRevenueAmountText(totalRevenue);
+//        } catch (SQLException | ClassNotFoundException e) {
+//            e.printStackTrace();
+//            revenueAmountText.setText("Error loading revenue");
+//        }
+//    }
 
     private double calculateTotalRevenue(ArrayList<SalesOrderdto> orders) {
         return orders.stream()

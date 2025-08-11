@@ -13,11 +13,11 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.FarmerBO; // Corrected import
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.FarmerBO;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.InUseException;
 import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
-import lk.ijse.gdse74.mytest2.responsive.dto.FarmerDTO; // Corrected import
+import lk.ijse.gdse74.mytest2.responsive.dto.FarmerDTO;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
-public class FarmerController implements Initializable { // Renamed class
+public class FarmerController implements Initializable {
 
     @FXML private TableColumn<FarmerDTO, String> coladdress;
     @FXML private TableColumn<FarmerDTO, String> colcontatcnumber;
@@ -35,7 +35,7 @@ public class FarmerController implements Initializable { // Renamed class
     @FXML private Button btnDelete;
     @FXML private Button btnSave;
     @FXML private Button btnUpdate;
-    @FXML private TableView<FarmerDTO> tfarmersTable; // Keep this name for FXML consistency
+    @FXML private TableView<FarmerDTO> tfarmersTable;
     @FXML private TextField txtContact_number;
     @FXML private TextField txtId;
     @FXML private TextField txtName;
@@ -47,7 +47,7 @@ public class FarmerController implements Initializable { // Renamed class
     private final String phonePattern = "^(?:0|\\+94|0094)?(?:07\\d{8})$";
 
     private ObservableList<FarmerDTO> farmerMasterData = FXCollections.observableArrayList();
-    private final FarmerBO farmerBO = BOFactory.getInstance().getBO(BOTypes.FARMER); // Use FarmerBO
+    private final FarmerBO farmerBO = BOFactory.getInstance().getBO(BOTypes.FARMER);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -103,13 +103,13 @@ public class FarmerController implements Initializable { // Renamed class
         coladdress.setCellValueFactory(new PropertyValueFactory<>("address"));
 
         try {
-            List<FarmerDTO> farmers = farmerBO.getAllFarmers(); // Use FarmerBO
+            List<FarmerDTO> farmers = farmerBO.getAllFarmers();
             farmerMasterData = FXCollections.observableArrayList(farmers);
             tfarmersTable.setItems(farmerMasterData);
             updateFarmerCount();
         } catch (SQLException e) {
             new Alert(Alert.AlertType.ERROR, "Failed to load farmer data: " + e.getMessage()).show();
-            throw e; // Re-throw to be caught by initialize
+            throw e;
         }
     }
 
@@ -130,7 +130,7 @@ public class FarmerController implements Initializable { // Renamed class
             );
 
             try {
-                farmerBO.saveFarmer(farmerDTO); // Use FarmerBO
+                farmerBO.saveFarmer(farmerDTO);
                 new Alert(Alert.AlertType.INFORMATION, "Farmer saved successfully").show();
                 clearFields();
             } catch (DuplicateException e) {
@@ -155,7 +155,7 @@ public class FarmerController implements Initializable { // Renamed class
 
     private void loadNextId() throws SQLException {
         try {
-            String nextId = farmerBO.getNextId(); // Use FarmerBO
+            String nextId = farmerBO.getNextId();
             txtId.setText(nextId);
             txtId.setEditable(false);
         } catch (SQLException e) {
@@ -188,7 +188,7 @@ public class FarmerController implements Initializable { // Renamed class
                 );
 
                 try {
-                    farmerBO.updateFarmer(farmerDTO); // Use FarmerBO
+                    farmerBO.updateFarmer(farmerDTO);
                     new Alert(Alert.AlertType.INFORMATION, "Farmer updated successfully").show();
                     clearFields();
                 } catch (NotFoundException | DuplicateException e) {
@@ -213,7 +213,7 @@ public class FarmerController implements Initializable { // Renamed class
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String id = txtId.getText();
             try {
-                boolean isDeleted = farmerBO.deleteFarmer(id); // Use FarmerBO
+                boolean isDeleted = farmerBO.deleteFarmer(id);
                 if (isDeleted) {
                     new Alert(Alert.AlertType.INFORMATION, "Farmer deleted successfully").show();
                     clearFields();
@@ -235,19 +235,19 @@ public class FarmerController implements Initializable { // Renamed class
 
     @FXML
     void tableColumnOnClicked(MouseEvent event) {
-        FarmerDTO farmerDTO = tfarmersTable.getSelectionModel().getSelectedItem(); // Use FarmerDTO
+        FarmerDTO farmerDTO = tfarmersTable.getSelectionModel().getSelectedItem();
         if (farmerDTO != null) {
             txtId.setText(farmerDTO.getFarmerId());
             txtName.setText(farmerDTO.getName());
             txtContact_number.setText(farmerDTO.getContactNumber());
             txtaddress.setText(farmerDTO.getAddress());
 
-            disableButtons(false); // Enable update and delete
-            btnSave.setDisable(true); // Disable save
+            disableButtons(false);
+            btnSave.setDisable(true);
         }
     }
 
-    public void txtNamehange(KeyEvent keyEvent) { // Typo corrected from txtNameChange
+    public void txtNamehange(KeyEvent keyEvent) {
         String name = txtName.getText();
         boolean isValidName = name.matches(namePattern);
         txtName.setStyle(isValidName ? "-fx-border-color: blue" : "-fx-border-color: red");
@@ -261,7 +261,7 @@ public class FarmerController implements Initializable { // Renamed class
 
     @FXML
     void searchFarmer(KeyEvent event) {
-        // Handled by the setupSearchFilter method
+
     }
 
     @FXML

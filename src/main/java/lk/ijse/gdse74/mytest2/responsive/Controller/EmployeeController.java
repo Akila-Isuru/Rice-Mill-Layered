@@ -152,11 +152,10 @@ public class EmployeeController implements Initializable {
             btnUpdate.setDisable(!isValidInputForSaveOrUpdate); // Enable Update if valid
             btnDelete.setDisable(false); // Enable Delete
         }
-        // Also apply real-time styles
+
         applyValidationStyles();
     }
 
-    // Consolidated validation method. showDialog parameter controls alert visibility.
     private boolean validateInputFields(boolean showDialog) {
         String name = txtName.getText().trim();
         String address = txtAddress.getText().trim();

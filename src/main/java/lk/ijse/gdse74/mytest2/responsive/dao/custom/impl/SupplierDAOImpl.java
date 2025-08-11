@@ -20,7 +20,7 @@ public class SupplierDAOImpl implements SupplierDAO {
             suppliers.add(new Supplier(
                     rs.getString("supplier_id"),
                     rs.getString("name"),
-                    rs.getString("cotact_number"), // Corrected to cotact_number
+                    rs.getString("cotact_number"),
                     rs.getString("address"),
                     rs.getString("email")
             ));
@@ -53,7 +53,7 @@ public class SupplierDAOImpl implements SupplierDAO {
                 "INSERT INTO suppliers (supplier_id, name, cotact_number, address, email) VALUES (?,?,?,?,?)",
                 entity.getSupplierId(),
                 entity.getName(),
-                entity.getCotactNumber(), // Corrected to getCotactNumber
+                entity.getCotactNumber(),
                 entity.getAddress(),
                 entity.getEmail()
         );
@@ -64,7 +64,7 @@ public class SupplierDAOImpl implements SupplierDAO {
         return SQLUtill.execute(
                 "UPDATE suppliers SET name=?, cotact_number=?, address=?, email=? WHERE supplier_id=?",
                 entity.getName(),
-                entity.getCotactNumber(), // Corrected to getCotactNumber
+                entity.getCotactNumber(),
                 entity.getAddress(),
                 entity.getEmail(),
                 entity.getSupplierId()
@@ -94,7 +94,7 @@ public class SupplierDAOImpl implements SupplierDAO {
             return Optional.of(new Supplier(
                     rs.getString("supplier_id"),
                     rs.getString("name"),
-                    rs.getString("cotact_number"), // Corrected to cotact_number
+                    rs.getString("cotact_number"),
                     rs.getString("address"),
                     rs.getString("email")
             ));
