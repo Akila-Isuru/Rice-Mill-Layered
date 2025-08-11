@@ -24,7 +24,8 @@ public class BOFactory {
             case MILLING_PROCESS -> (T) new MillingProcessBOImpl();
             case FINISHED_PRODUCT -> (T) new FinishedProductBOImpl();
             case INVENTORY -> (T) new InventoryBOImpl();
-            case MACHINE_MAINTENANCE -> (T) new MachineMaintenanceBOImpl(); // New case
+            case MACHINE_MAINTENANCE -> (T) new MachineMaintenanceBOImpl();
+            case SALES_ORDER -> (T) new SalesOrderBOImpl(); // New case
         };
     }
 }

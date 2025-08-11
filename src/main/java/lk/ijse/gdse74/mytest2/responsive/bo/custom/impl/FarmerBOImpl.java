@@ -18,7 +18,7 @@ import java.util.Optional;
 
 public class FarmerBOImpl implements FarmerBO {
 
-    private final FarmerDAO farmerDAO = DAOFactory.getInstance().getDAO(DAOTypes.FARMER); // Use FarmerDAO
+    private final FarmerDAO farmerDAO = DAOFactory.getInstance().getDAO(DAOTypes.FARMER);
     private final EntityDTOConverter converter = new EntityDTOConverter();
 
     @Override
@@ -26,26 +26,26 @@ public class FarmerBOImpl implements FarmerBO {
         List<Farmer> farmers = farmerDAO.getAll();
         List<FarmerDTO> farmerDTOS = new ArrayList<>();
         for (Farmer farmer : farmers) {
-            farmerDTOS.add(converter.getFarmerDTO(farmer)); // Use getFarmerDTO
+            farmerDTOS.add(converter.getFarmerDTO(farmer));
         }
         return farmerDTOS;
     }
 
     @Override
     public void saveFarmer(FarmerDTO dto) throws DuplicateException, Exception {
-        // Check for duplicate ID
+
         Optional<Farmer> optionalFarmer = farmerDAO.findById(dto.getFarmerId());
         if (optionalFarmer.isPresent()) {
             throw new DuplicateException("Duplicate farmer id");
         }
 
-        // Check for duplicate contact number
+
         Optional<Farmer> farmerByContactOptional = farmerDAO.findFarmerByContactNumber(dto.getContactNumber());
         if (farmerByContactOptional.isPresent()) {
             throw new DuplicateException("Duplicate farmer contact number");
         }
 
-        Farmer farmer = converter.getFarmer(dto); // Use getFarmer
+        Farmer farmer = converter.getFarmer(dto);
         farmerDAO.save(farmer);
     }
 
@@ -56,7 +56,7 @@ public class FarmerBOImpl implements FarmerBO {
             throw new NotFoundException("Farmer not found");
         }
 
-        // Check for duplicate contact number (excluding current farmer)
+
         Optional<Farmer> farmerByContactOptional = farmerDAO.findFarmerByContactNumber(dto.getContactNumber());
         if (farmerByContactOptional.isPresent()) {
             Farmer farmer = farmerByContactOptional.get();
@@ -65,7 +65,7 @@ public class FarmerBOImpl implements FarmerBO {
             }
         }
 
-        Farmer farmer = converter.getFarmer(dto); // Use getFarmer
+        Farmer farmer = converter.getFarmer(dto);
         farmerDAO.update(farmer);
     }
 
@@ -79,8 +79,7 @@ public class FarmerBOImpl implements FarmerBO {
         try {
             return farmerDAO.delete(id);
         } catch (Exception e) {
-            // Here you might want to check if the exception is due to foreign key constraint
-            // If so, throw InUseException. For simplicity, catching generic Exception here.
+
             throw new InUseException("Cannot delete farmer, it is currently in use or associated with other data.");
         }
     }

@@ -8,6 +8,7 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors; // Added for stream usage
 
 public class EntityDTOConverter {
 
@@ -186,7 +187,7 @@ public class EntityDTOConverter {
                 finishedProduct.getProductId(),
                 finishedProduct.getMillingId(),
                 finishedProduct.getProductType(),
-                finishedProduct.getPackagingSizeKg().doubleValue(),
+                finishedProduct.getPackagingSizeKg().doubleValue(), // Convert BigDecimal to double for DTO
                 finishedProduct.getTotalQuantityBags(),
                 finishedProduct.getPricePerBag()
         );
@@ -197,7 +198,7 @@ public class EntityDTOConverter {
                 finishedProductdto.getProductId(),
                 finishedProductdto.getMillingId(),
                 finishedProductdto.getProductType(),
-                BigDecimal.valueOf(finishedProductdto.getPackageSize()),
+                BigDecimal.valueOf(finishedProductdto.getPackageSize()), // Convert double to BigDecimal for Entity
                 finishedProductdto.getQuantityBags(),
                 finishedProductdto.getPricePerBag()
         );
@@ -240,5 +241,64 @@ public class EntityDTOConverter {
                 dto.getDescription(),
                 dto.getCost()
         );
+    }
+
+    // --- NEW: SalesOrder Conversions ---
+    public SalesOrderdto getSalesOrderdto(SalesOrder salesOrder) {
+        return new SalesOrderdto(
+                salesOrder.getOrderId(),
+                salesOrder.getCustomerId(),
+                salesOrder.getOrderDate(),
+                salesOrder.getOrderAmount(), // Mapping totalAmount from entity to orderAmount in DTO
+                null // cartList is not stored in SalesOrder entity, needs to be fetched separately if needed
+        );
+    }
+
+    public SalesOrder getSalesOrder(SalesOrderdto dto) {
+        return new SalesOrder(
+                dto.getOrderId(),
+                dto.getCustomerId(),
+                dto.getOrderDate(),
+                dto.getOrderAmount() // Mapping orderAmount from DTO to totalAmount for entity/DB
+        );
+    }
+
+    public List<SalesOrderdto> toSalesOrderdtoList(List<SalesOrder> salesOrderList) {
+        return salesOrderList.stream()
+                .map(this::getSalesOrderdto)
+                .collect(Collectors.toList());
+    }
+
+    // --- NEW: SalesOrderDetails Conversions ---
+    public SalesOrderDetailsdto getSalesOrderDetailsdto(SalesOrderDetails salesOrderDetails) {
+        return new SalesOrderDetailsdto(
+                salesOrderDetails.getOrderId(),
+                salesOrderDetails.getProductId(),
+                salesOrderDetails.getQty(), // Correct order based on your DTO constructor
+                salesOrderDetails.getUnitPrice(),
+                salesOrderDetails.getTotalPrice()
+        );
+    }
+
+    public SalesOrderDetails getSalesOrderDetails(SalesOrderDetailsdto dto) {
+        return new SalesOrderDetails(
+                dto.getOrderId(),
+                dto.getProductId(),
+                dto.getUnitPrice(),
+                dto.getQty(),
+                dto.getTotalPrice()
+        );
+    }
+
+    public List<SalesOrderDetailsdto> toSalesOrderDetailsdtoList(List<SalesOrderDetails> detailsList) {
+        return detailsList.stream()
+                .map(this::getSalesOrderDetailsdto)
+                .collect(Collectors.toList());
+    }
+
+    public List<SalesOrderDetails> toSalesOrderDetailsList(List<SalesOrderDetailsdto> dtoList) {
+        return dtoList.stream()
+                .map(this::getSalesOrderDetails)
+                .collect(Collectors.toList());
     }
 }

@@ -13,7 +13,11 @@ public class FinishedProduct {
     private String productId;
     private String millingId;
     private String productType;
-    private BigDecimal packagingSizeKg; // Matches database column type
+    private BigDecimal packagingSizeKg; // Updated to BigDecimal
     private int totalQuantityBags;
     private int pricePerBag;
+
+    public FinishedProduct(String productId) { // Added constructor matching original DTO usage
+        this.productId = productId;
+    }
 }

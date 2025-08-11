@@ -2,8 +2,6 @@ package lk.ijse.gdse74.mytest2.responsive.dao;
 
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.impl.*;
 
-import static lk.ijse.gdse74.mytest2.responsive.bo.BOTypes.MACHINE_MAINTENANCE;
-
 public class DAOFactory {
     private static DAOFactory daoFactory;
 
@@ -26,7 +24,9 @@ public class DAOFactory {
             case MILLING_PROCESS -> new MillingProcessDAOImpl();
             case FINISHED_PRODUCT -> new FinishedProductDAOImpl();
             case INVENTORY -> new InventoryDAOImpl();
-            case MACHINE_MAINTENANCE -> new MachineMaintenanceDAOImpl(); // New case
+            case MACHINE_MAINTENANCE -> new MachineMaintenanceDAOImpl();
+            case SALES_ORDER -> new SalesOrderDAOImpl();
+            case SALES_ORDER_DETAILS -> new SalesOrderDetailsDAOImpl();
         };
     }
 }

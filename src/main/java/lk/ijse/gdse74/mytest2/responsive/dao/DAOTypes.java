@@ -10,5 +10,7 @@ public enum DAOTypes {
     MILLING_PROCESS,
     FINISHED_PRODUCT,
     INVENTORY,
-    MACHINE_MAINTENANCE // New entry
+    MACHINE_MAINTENANCE,
+    SALES_ORDER, // New entry
+    SALES_ORDER_DETAILS // New entry
 }

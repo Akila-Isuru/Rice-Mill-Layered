@@ -17,14 +17,12 @@
    </padding>
 
    <children>
-      <!-- Header Section -->
       <Label layoutX="20.0" layoutY="20.0" style="-fx-text-fill: #2c3e50;" text="Order Management">
          <font>
             <Font name="System Bold" size="24.0" />
          </font>
       </Label>
 
-      <!-- Order Information Section -->
       <VBox layoutX="50.0" layoutY="70.0" spacing="15" style="-fx-background-color: #f8f9fa; -fx-background-radius: 5; -fx-padding: 15;">
          <HBox spacing="20" alignment="CENTER_LEFT">
             <Label prefHeight="42.0" prefWidth="76.0" text="Order Id" style="-fx-text-fill: #495057;">
@@ -59,7 +57,6 @@
          </HBox>
       </VBox>
 
-      <!-- Product Information Section -->
       <VBox layoutX="50.0" layoutY="210.0" spacing="15" style="-fx-background-color: #f8f9fa; -fx-background-radius: 5; -fx-padding: 15;">
          <HBox spacing="20" alignment="CENTER_LEFT">
             <Label prefHeight="39.0" prefWidth="105.0" text="Product Id" style="-fx-text-fill: #495057;">
@@ -94,7 +91,6 @@
          </HBox>
       </VBox>
 
-      <!-- Add to Cart Section -->
       <VBox layoutX="50.0" layoutY="350.0" spacing="10" style="-fx-background-color: #f8f9fa; -fx-background-radius: 5; -fx-padding: 15;">
          <HBox spacing="20" alignment="CENTER_LEFT">
             <Label prefHeight="42.0" prefWidth="106.0" text="Quantity" style="-fx-text-fill: #495057;">
@@ -114,7 +110,6 @@
          </HBox>
       </VBox>
 
-      <!-- Order Items Table -->
       <TableView fx:id="table" layoutX="50.0" layoutY="420.0" onMouseClicked="#tableColumnOnClicked"
                  prefHeight="200.0" prefWidth="800.0"
                  style="-fx-background-radius: 5; -fx-border-color: #dee2e6; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 5, 0, 0, 2);">
@@ -128,7 +123,13 @@
          </columns>
       </TableView>
 
-      <!-- Footer Button -->
+      <Label layoutX="500.0" layoutY="650.0" text="Grand Total:" style="-fx-text-fill: #2c3e50;">
+         <font>
+            <Font name="System Bold" size="18.0" />
+         </font>
+      </Label>
+      <Label fx:id="lblGrandTotal" layoutX="620.0" layoutY="650.0" text="0.00" style="-fx-text-fill: #e74c3c; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+
       <Button layoutX="770.0" layoutY="650.0" mnemonicParsing="false"
               onAction="#btnOnActionPlaceOrder"
               style="-fx-background-color: #007bff; -fx-text-fill: white; -fx-background-radius: 3; -fx-font-weight: bold;"
