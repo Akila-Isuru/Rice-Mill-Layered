@@ -11,5 +11,6 @@ public enum BOTypes {
     FINISHED_PRODUCT,
     INVENTORY,
     MACHINE_MAINTENANCE,
-    SALES_ORDER // New entry
+    SALES_ORDER,
+    REPORTS
 }

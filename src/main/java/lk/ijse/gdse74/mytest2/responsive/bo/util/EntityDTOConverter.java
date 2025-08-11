@@ -301,4 +301,31 @@ public class EntityDTOConverter {
                 .map(this::getSalesOrderDetails)
                 .collect(Collectors.toList());
     }
+    public Reportsdto getReportsdto(ReportsEntity reportsEntity) {
+        return new Reportsdto(
+                reportsEntity.getReportId(),
+                reportsEntity.getReportType(),
+                reportsEntity.getReportDate()
+        );
+    }
+
+    public ReportsEntity getReportsEntity(Reportsdto reportsdto) {
+        return new ReportsEntity(
+                reportsdto.getReportId(),
+                reportsdto.getReportType(),
+                reportsdto.getReportDate()
+        );
+    }
+
+    public List<Reportsdto> toReportsdtoList(List<ReportsEntity> reportsEntityList) {
+        return reportsEntityList.stream()
+                .map(this::getReportsdto)
+                .collect(Collectors.toList());
+    }
+
+    public List<ReportsEntity> toReportsEntityList(List<Reportsdto> reportsdtoList) {
+        return reportsdtoList.stream()
+                .map(this::getReportsEntity)
+                .collect(Collectors.toList());
+    }
 }
