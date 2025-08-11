@@ -13,16 +13,16 @@ import java.util.ArrayList;
 public class SalesOrderdto {
     private String orderId;
     private String customerId;
-    private Date orderDate; // int totalAmount; as per your original request
-    private int orderAmount; // Changed from totalAmount to orderAmount as per your original DTO name
-    private ArrayList<SalesOrderDetailsdto> cartList; // Keeping ArrayList as per your original request
+    private Date orderDate;
+    private int orderAmount;
+    private ArrayList<SalesOrderDetailsdto> cartList;
 
-    // Your existing constructor
+
     public SalesOrderdto(String id) {
         this.orderId = id;
     }
 
-    // Constructor to match the data structure used for existing orders (from SalesOrderModel.viewAllSalesOrder)
+
     public SalesOrderdto(String orderId, String customerId, java.sql.Date orderDate, int orderAmount) {
         this.orderId = orderId;
         this.customerId = customerId;

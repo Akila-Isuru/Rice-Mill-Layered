@@ -2,8 +2,8 @@ package lk.ijse.gdse74.mytest2.responsive.dto;
 
 import lombok.*;
 
-import java.math.BigDecimal; // Import BigDecimal
-import java.util.Date; // java.util.Date for the DTO
+import java.math.BigDecimal;
+import java.util.Date;
 
 @Getter
 @Setter
@@ -14,10 +14,10 @@ public class RawPaddydto {
     private String paddyId;
     private String supplierId;
     private String farmerId;
-    private BigDecimal quantity;        // Changed to BigDecimal
-    private BigDecimal moisture;        // Changed to BigDecimal
-    private BigDecimal purchasePrice;   // Changed to BigDecimal
-    private Date purchaseDate;          // java.util.Date for DTO
+    private BigDecimal quantity;
+    private BigDecimal moisture;
+    private BigDecimal purchasePrice;
+    private Date purchaseDate;
 
     public RawPaddydto(String paddyId) {
         this.paddyId = paddyId;

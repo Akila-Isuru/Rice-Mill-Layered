@@ -7,7 +7,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class FarmerDTO { // Renamed from Farmersdto
+public class FarmerDTO {
     private String farmerId;
     private String name;
     private String contactNumber;
