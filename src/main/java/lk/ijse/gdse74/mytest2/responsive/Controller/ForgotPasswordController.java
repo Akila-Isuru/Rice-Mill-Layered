@@ -9,13 +9,20 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-import lk.ijse.gdse74.mytest2.responsive.model.UsersModel;
+//import lk.ijse.gdse74.mytest2.responsive.model.UsersModel;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.UserBO;
 import lk.ijse.gdse74.mytest2.responsive.utill.EmailUtil;
 
 import java.io.IOException;
 import java.sql.SQLException;
 
+
+
 public class ForgotPasswordController {
+    private final UserBO userBO = BOFactory.getInstance().getBO(BOTypes.USER);
+
 
     @FXML
     private TextField txtEmail;
@@ -36,8 +43,8 @@ public class ForgotPasswordController {
         }
 
         try {
-            UsersModel usersModel = new UsersModel();
-            String password = usersModel.getPasswordByEmail(email);
+
+            String password = userBO.getPasswordByEmail(email);
 
             if (password != null) {
 

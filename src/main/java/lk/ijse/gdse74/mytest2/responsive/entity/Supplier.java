@@ -10,7 +10,7 @@ import lombok.*;
 public class Supplier {
     private String supplierId;
     private String name;
-    private String cotactNumber; // Changed to cotactNumber to match your DB column 'cotact_number'
+    private String cotactNumber;
     private String address;
     private String email;
 }

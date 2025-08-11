@@ -3,7 +3,7 @@ package lk.ijse.gdse74.mytest2.responsive.entity;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.sql.Time; // Use java.sql.Time for the entity
+import java.sql.Time;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,10 +13,10 @@ import java.sql.Time; // Use java.sql.Time for the entity
 public class MillingProcess {
     private String millingId;
     private String paddyId;
-    private Time startTime; // Mapped to SQL TIME
-    private Time endTime;   // Mapped to SQL TIME
+    private Time startTime;
+    private Time endTime;
     private BigDecimal milledQuantity;
     private BigDecimal brokenRice;
-    private BigDecimal huskKg; // Matches database column name
-    private BigDecimal branKg; // Matches database column name
+    private BigDecimal huskKg;
+    private BigDecimal branKg;
 }

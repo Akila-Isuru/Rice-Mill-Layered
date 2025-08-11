@@ -13,5 +13,5 @@ public class User {
     private String email;
     private String role;
     private String contactNumber;
-    private String password; // Storing as String, consider hashing for security
+    private String password;
 }

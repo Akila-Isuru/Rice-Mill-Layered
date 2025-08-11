@@ -11,7 +11,10 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.Parent;
 import javafx.stage.Stage;
-import lk.ijse.gdse74.mytest2.responsive.model.UsersModel;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.UserBO;
+//import lk.ijse.gdse74.mytest2.responsive.model.UsersModel;
 import lk.ijse.gdse74.mytest2.responsive.dto.Usersdto;
 
 import java.io.IOException;
@@ -33,6 +36,7 @@ public class FirstPage {
 
     @FXML
     private TextField userName;
+    private final UserBO userBO = BOFactory.getInstance().getBO(BOTypes.USER);
 
     @FXML
     void btnSecondPageOnAction(ActionEvent event) throws IOException {
@@ -40,11 +44,11 @@ public class FirstPage {
         String enteredUsername = userName.getText();
         String enteredPassword = password.getText();
 
-        UsersModel usersModel = new UsersModel();
+       // UsersModel usersModel = new UsersModel();
 
         try {
 
-            Usersdto user = usersModel.getUserByUsernameAndPassword(enteredUsername, enteredPassword);
+            Usersdto user = userBO.authenticateUser(enteredUsername, enteredPassword);
 
             if (user != null) {
 

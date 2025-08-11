@@ -2,7 +2,7 @@ package lk.ijse.gdse74.mytest2.responsive.entity;
 
 import lombok.*;
 
-import java.math.BigDecimal; // Import for BigDecimal
+import java.math.BigDecimal;
 
 @AllArgsConstructor
 @NoArgsConstructor
