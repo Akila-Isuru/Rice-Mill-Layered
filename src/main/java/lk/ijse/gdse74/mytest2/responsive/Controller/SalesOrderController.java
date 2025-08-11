@@ -44,8 +44,8 @@ public class SalesOrderController implements Initializable {
     @FXML private Label lblOrder_Date;
     @FXML private Label lblUnitPrice;
     @FXML private TextField txtAddCartQuantity;
-    @FXML private TextField txtOrdera; // This is Order ID TextField
-    @FXML private Label lblGrandTotal; // Label to display Grand Total
+    @FXML private TextField txtOrdera;
+    @FXML private Label lblGrandTotal;
     @FXML private TableColumn<?, ?> colAction;
     @FXML private TableColumn<cartTM, String> colProductID;
     @FXML private TableColumn<cartTM, String> colProductName;
@@ -57,7 +57,7 @@ public class SalesOrderController implements Initializable {
     @FXML private ComboBox<String> cmbItemId;
 
     private final ObservableList<cartTM> cartData = FXCollections.observableArrayList();
-    private int currentItemQtyOnHand = 0; // To keep track of the available quantity for the selected item
+    private int currentItemQtyOnHand = 0;
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -67,10 +67,10 @@ public class SalesOrderController implements Initializable {
         try {
             generateNextOrderId();
             lblOrder_Date.setText(LocalDate.now().toString());
-            txtOrdera.setEditable(false); // Order ID should not be editable
+            txtOrdera.setEditable(false);
             loadItemIds();
             loadCustomerIds();
-            updateTotalAmount(); // Initialize total amount label to 0
+            updateTotalAmount();
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Initialization error: " + e.getMessage()).show();
@@ -142,7 +142,7 @@ public class SalesOrderController implements Initializable {
             }
 
             String itemName = lblItemName.getText();
-            // Ensure lblUnitPrice has a valid numeric value before parsing
+
             if (lblUnitPrice.getText().isEmpty() || !lblUnitPrice.getText().matches("^\\d+(\\.\\d+)?$")) {
                 new Alert(Alert.AlertType.WARNING, "Unit price is not valid. Please select an item again.").show();
                 return;
@@ -150,7 +150,7 @@ public class SalesOrderController implements Initializable {
             int unitPrice = Integer.parseInt(lblUnitPrice.getText().split("\\.")[0]); // Take only integer part if "0.00"
             int total = unitPrice * cartQty;
 
-            // Check stock considering items already in cart
+
             int remainingStock = currentItemQtyOnHand;
             for (cartTM existingItemInCart : cartData) {
                 if (existingItemInCart.getProductId().equals(selectedItemId)) {
@@ -163,7 +163,7 @@ public class SalesOrderController implements Initializable {
                 return;
             }
 
-            // Update existing item in cart or add new
+
             Optional<cartTM> existingItem = cartData.stream()
                     .filter(item -> item.getProductId().equals(selectedItemId))
                     .findFirst();
@@ -184,7 +184,7 @@ public class SalesOrderController implements Initializable {
                         removeBtn
                 );
                 removeBtn.setOnAction(event -> {
-                    // When remove button is clicked, add back the quantity to lblItemQty (UI only)
+
                     int removedQty = newItem.getQty();
                     try {
                         FinishedProductdto product = finishedProductBO.findFinishedProductById(newItem.getProductId());
@@ -200,16 +200,16 @@ public class SalesOrderController implements Initializable {
 
                     cartData.remove(newItem);
                     table.refresh();
-                    updateTotalAmount(); // Update total after removing
+                    updateTotalAmount();
                 });
                 cartData.add(newItem);
             }
 
-            // Update UI
-            lblItemQty.setText(String.valueOf(remainingStock - cartQty)); // Update remaining stock on UI
+
+            lblItemQty.setText(String.valueOf(remainingStock - cartQty));
             txtAddCartQuantity.clear();
             table.refresh();
-            updateTotalAmount(); // Update total after adding
+            updateTotalAmount();
 
         } catch (NumberFormatException e) {
             new Alert(Alert.AlertType.ERROR, "Invalid number format for quantity or price: " + e.getMessage()).show();
@@ -225,43 +225,43 @@ public class SalesOrderController implements Initializable {
     }
 
     @FXML void btnDeleteOnAction(ActionEvent event) {
-        // This button's logic is for deleting an entire SalesOrder from the DB.
+
         new Alert(Alert.AlertType.INFORMATION, "Delete Sales Order functionality not fully implemented here. Proceed with caution if using.").show();
     }
 
     @FXML void btnSaveOnAction(ActionEvent event) {
-        btnOnActionPlaceOrder(event); // Re-routing save to place order as per typical sales flow
+        btnOnActionPlaceOrder(event);
     }
 
     @FXML void btnUpdateOnAction(ActionEvent event) {
-        // This button's logic is for updating an existing SalesOrder in the DB.
+
         new Alert(Alert.AlertType.INFORMATION, "Update Sales Order functionality not fully implemented here. Proceed with caution if using.").show();
     }
 
     private void clearFields() {
         cmbItemId.getSelectionModel().clearSelection();
-        lblUnitPrice.setText("0"); // Default to "0" for int parsing consistency
+        lblUnitPrice.setText("0");
         lblItemName.setText("");
         txtAddCartQuantity.setText("");
-        lblItemQty.setText("0"); // Clear item quantity label
-        cartData.clear(); // Clear the cart
-        updateTotalAmount(); // Reset total amount display to 0
+        lblItemQty.setText("0");
+        cartData.clear();
+        updateTotalAmount();
         cmbCustomerId.getSelectionModel().clearSelection();
         lblCustomerName.setText("");
-        generateNextOrderId(); // Generate new ID for next order
-        lblOrder_Date.setText(LocalDate.now().toString()); // Set current date
+        generateNextOrderId();
+        lblOrder_Date.setText(LocalDate.now().toString());
     }
 
     @FXML void cmbCustomerOnAction(ActionEvent actionEvent) {
         String selectedCustomerId = cmbCustomerId.getValue();
         if (selectedCustomerId != null && !selectedCustomerId.isEmpty()) {
             try {
-                // ***MODIFIED: Use getAllCustomers() and stream to find the customer***
+
                 Customersdto customer = customerBO.getAllCustomers().stream()
                         .filter(c -> c.getCustomerId().equals(selectedCustomerId))
                         .findFirst()
                         .orElse(null);
-                // ***END MODIFIED***
+
 
                 if (customer != null) {
                     lblCustomerName.setText(customer.getName());
@@ -285,16 +285,15 @@ public class SalesOrderController implements Initializable {
                 if (product != null) {
                     lblItemName.setText(product.getProductType());
                     lblUnitPrice.setText(String.valueOf(product.getPricePerBag()));
-                    currentItemQtyOnHand = product.getQuantityBags(); // Store original quantity
+                    currentItemQtyOnHand = product.getQuantityBags();
 
-                    // Adjust lblItemQty based on what's already in the cart for this item
                     int qtyInCartForThisProduct = getTotalQuantityInCartForProduct(selectedItemId);
                     lblItemQty.setText(String.valueOf(currentItemQtyOnHand - qtyInCartForThisProduct));
 
                 } else {
                     lblItemName.setText("N/A");
                     lblItemQty.setText("0");
-                    lblUnitPrice.setText("0"); // Set to "0" for int parsing consistency
+                    lblUnitPrice.setText("0");
                     currentItemQtyOnHand = 0;
                 }
             } catch (SQLException e) {
@@ -304,12 +303,11 @@ public class SalesOrderController implements Initializable {
         } else {
             lblItemName.setText("");
             lblItemQty.setText("0");
-            lblUnitPrice.setText("0"); // Set to "0" for int parsing consistency
+            lblUnitPrice.setText("0");
             currentItemQtyOnHand = 0;
         }
     }
 
-    // Helper method to get total quantity of a product currently in the cart
     private int getTotalQuantityInCartForProduct(String productId) {
         int totalQty = 0;
         for (cartTM item : cartData) {
@@ -321,7 +319,6 @@ public class SalesOrderController implements Initializable {
     }
 
     @FXML void tableColumnOnClicked(MouseEvent mouseEvent) {
-        // No specific action needed here for "Place Order" flow.
     }
 
     // This method now correctly updates the dedicated lblGrandTotal Label
@@ -330,7 +327,7 @@ public class SalesOrderController implements Initializable {
         for (cartTM item : cartData) {
             grandTotal += item.getTotal();
         }
-        lblGrandTotal.setText(String.valueOf(grandTotal)); // Set total to the new lblGrandTotal
+        lblGrandTotal.setText(String.valueOf(grandTotal));
     }
 
     @FXML
@@ -344,18 +341,18 @@ public class SalesOrderController implements Initializable {
             return;
         }
 
-        String orderId = txtOrdera.getText(); // This is correctly the generated Order ID
+        String orderId = txtOrdera.getText();
         String customerId = cmbCustomerId.getValue();
-        Date orderDate = Date.valueOf(lblOrder_Date.getText()); // Get date from label
+        Date orderDate = Date.valueOf(lblOrder_Date.getText());
 
         ArrayList<SalesOrderDetailsdto> orderDetailsList = new ArrayList<>();
-        int orderTotalAmount = Integer.parseInt(lblGrandTotal.getText()); // Get total from the new Label
+        int orderTotalAmount = Integer.parseInt(lblGrandTotal.getText());
 
         for (cartTM cartItem : cartData) {
             SalesOrderDetailsdto detailDto = new SalesOrderDetailsdto(
                     orderId,
                     cartItem.getProductId(),
-                    cartItem.getQty(), // Qty from cartTM
+                    cartItem.getQty(),
                     cartItem.getUnitPrice(),
                     cartItem.getTotal()
             );
@@ -374,14 +371,14 @@ public class SalesOrderController implements Initializable {
             boolean isPlaced = salesOrderBO.placeOrder(salesOrderDto);
             if (isPlaced) {
                 new Alert(Alert.AlertType.INFORMATION, "Order placed successfully!").show();
-                clearFields(); // Clear UI for next order
+                clearFields();
             } else {
                 new Alert(Alert.AlertType.ERROR, "Failed to place order. Please try again.").show();
             }
         } catch (SQLException e) {
             if (e.getMessage().contains("Duplicate entry")) {
                 new Alert(Alert.AlertType.ERROR, "Failed to place order: Order ID already exists. Please try again. (Make sure you have cleaned up your database and restarted the app)").show();
-            } else if (e.getMessage().contains("Insufficient stock")) { // Custom check for your BO exception
+            } else if (e.getMessage().contains("Insufficient stock")) {
                 new Alert(Alert.AlertType.ERROR, "Failed to place order: " + e.getMessage()).show();
             } else {
                 new Alert(Alert.AlertType.ERROR, "Database Error: " + e.getMessage()).show();

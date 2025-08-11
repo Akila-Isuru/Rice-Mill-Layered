@@ -10,5 +10,5 @@ public interface SalesOrderBO extends SuperBO {
     boolean placeOrder(SalesOrderdto dto) throws SQLException;
     String getNextOrderId() throws SQLException;
     List<SalesOrderdto> getAllSalesOrders() throws SQLException;
-    // Add other methods like update, delete, view single order if needed
+
 }
