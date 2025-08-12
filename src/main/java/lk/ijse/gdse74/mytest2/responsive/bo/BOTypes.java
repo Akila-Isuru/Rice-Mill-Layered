@@ -12,5 +12,8 @@ public enum BOTypes {
     INVENTORY,
     MACHINE_MAINTENANCE,
     SALES_ORDER,
-    REPORTS
+    REPORTS,
+    ATTENDANCE,
+    WASTE_MANAGEMENT
+
 }

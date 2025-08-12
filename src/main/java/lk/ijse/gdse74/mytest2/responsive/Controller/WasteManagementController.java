@@ -11,16 +11,18 @@ import javafx.scene.input.MouseEvent;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
 import lk.ijse.gdse74.mytest2.responsive.bo.custom.MillingProcessBO;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.WasteManagementBO;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.DuplicateException;
+import lk.ijse.gdse74.mytest2.responsive.bo.exception.NotFoundException;
 import lk.ijse.gdse74.mytest2.responsive.dto.MillingProcessdto;
 import lk.ijse.gdse74.mytest2.responsive.dto.WasteManagementdto;
-import lk.ijse.gdse74.mytest2.responsive.model.WasteManagementModel;
-//import lk.ijse.gdse74.mytest2.responsive.model.MillingProcessModel;
 
 import java.math.BigDecimal;
 import java.net.URL;
-import java.util.ArrayList;
-import java.sql.Date;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -78,8 +80,7 @@ public class WasteManagementController implements Initializable {
     private TextField txtrecorded_date;
 
     private final MillingProcessBO millingProcessBO = BOFactory.getInstance().getBO(BOTypes.MILLING_PROCESS);
-
-
+    private final WasteManagementBO wasteManagementBO = BOFactory.getInstance().getBO(BOTypes.WASTE_MANAGEMENT);
 
     @FXML
     void btnClearOnAction(ActionEvent event) {
@@ -95,7 +96,6 @@ public class WasteManagementController implements Initializable {
             return;
         }
 
-
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Delete Confirmation");
         alert.setHeaderText("Delete Waste Record");
@@ -104,14 +104,16 @@ public class WasteManagementController implements Initializable {
 
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-                boolean isDelete = new WasteManagementModel().deleteWasteManagement(new WasteManagementdto(waste_id));
-                if (isDelete) {
+                boolean isDeleted = wasteManagementBO.deleteWasteManagement(waste_id);
+                if (isDeleted) {
                     clearFields();
                     new Alert(Alert.AlertType.INFORMATION, "Waste Deleted Successfully").show();
                     loadTable();
                 } else {
                     new Alert(Alert.AlertType.ERROR, "Waste Deletion Failed").show();
                 }
+            } catch (NotFoundException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
                 new Alert(Alert.AlertType.ERROR, "Error occurred while deleting: " + e.getMessage()).show();
@@ -122,7 +124,6 @@ public class WasteManagementController implements Initializable {
     @FXML
     void btnSaveOnAction(ActionEvent event) {
         try {
-
             if (cmbMilling_id.getValue() == null || cmbWaste_type.getValue() == null || cmbDisposal_method.getValue() == null) {
                 new Alert(Alert.AlertType.ERROR, "Please select a Milling ID, Waste Type, and Disposal Method.").show();
                 return;
@@ -137,7 +138,9 @@ public class WasteManagementController implements Initializable {
             }
 
             int quantity = Integer.parseInt(txtQuantity.getText());
-            Date recordDate = Date.valueOf(txtrecorded_date.getText());
+            LocalDate localDate = LocalDate.parse(txtrecorded_date.getText());
+            Date recordDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
 
             WasteManagementdto wasteManagementdto = new WasteManagementdto(
                     txtWaste_id.getText(),
@@ -148,18 +151,16 @@ public class WasteManagementController implements Initializable {
                     recordDate
             );
 
-            boolean isSave = new WasteManagementModel().saveWasteManagement(wasteManagementdto);
-            if (isSave) {
-                clearFields();
-                new Alert(Alert.AlertType.INFORMATION, "Waste Management has been saved successfully").show();
-                loadTable();
-            } else {
-                new Alert(Alert.AlertType.ERROR, "Waste Management could not be saved").show();
-            }
+            wasteManagementBO.saveWasteManagement(wasteManagementdto);
+            clearFields();
+            new Alert(Alert.AlertType.INFORMATION, "Waste Management has been saved successfully").show();
+            loadTable();
         } catch (NumberFormatException e) {
             new Alert(Alert.AlertType.ERROR, "Invalid number format for Quantity. Please enter a valid number.").show();
-        } catch (IllegalArgumentException e) {
+        } catch (java.time.format.DateTimeParseException e) {
             new Alert(Alert.AlertType.ERROR, "Invalid date format. Please use YYYY-MM-DD.").show();
+        } catch (DuplicateException e) {
+            new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "An error occurred while saving: " + e.getMessage()).show();
@@ -182,7 +183,6 @@ public class WasteManagementController implements Initializable {
 
         if (result.isPresent() && result.get() == ButtonType.OK) {
             try {
-
                 if (cmbMilling_id.getValue() == null || cmbWaste_type.getValue() == null || cmbDisposal_method.getValue() == null) {
                     new Alert(Alert.AlertType.ERROR, "Please select a Milling ID, Waste Type, and Disposal Method.").show();
                     return;
@@ -197,7 +197,8 @@ public class WasteManagementController implements Initializable {
                 }
 
                 int quantity = Integer.parseInt(txtQuantity.getText());
-                Date recordDate = Date.valueOf(txtrecorded_date.getText());
+                LocalDate localDate = LocalDate.parse(txtrecorded_date.getText());
+                Date recordDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
                 WasteManagementdto wasteManagementdto = new WasteManagementdto(
                         txtWaste_id.getText(),
@@ -208,18 +209,16 @@ public class WasteManagementController implements Initializable {
                         recordDate
                 );
 
-                boolean isUpdate = new WasteManagementModel().updateWasteManagement(wasteManagementdto);
-                if (isUpdate) {
-                    clearFields();
-                    new Alert(Alert.AlertType.INFORMATION, "Waste Management has been updated successfully").show();
-                    loadTable();
-                } else {
-                    new Alert(Alert.AlertType.ERROR, "Waste Management could not be updated").show();
-                }
+                wasteManagementBO.updateWasteManagement(wasteManagementdto);
+                clearFields();
+                new Alert(Alert.AlertType.INFORMATION, "Waste Management has been updated successfully").show();
+                loadTable();
             } catch (NumberFormatException e) {
                 new Alert(Alert.AlertType.ERROR, "Invalid number format for Quantity. Please enter a valid number.").show();
-            } catch (IllegalArgumentException e) {
+            } catch (java.time.format.DateTimeParseException e) {
                 new Alert(Alert.AlertType.ERROR, "Invalid date format. Please use YYYY-MM-DD.").show();
+            } catch (NotFoundException e) {
+                new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
                 e.printStackTrace();
                 new Alert(Alert.AlertType.ERROR, "An error occurred while updating: " + e.getMessage()).show();
@@ -237,13 +236,11 @@ public class WasteManagementController implements Initializable {
         loadDisposalMethods();
         setLocalCurrentDate();
 
-
         cmbWaste_type.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && cmbMilling_id.getValue() != null) {
                 fetchQuantityForWasteType();
             }
         });
-
 
         cmbMilling_id.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && cmbWaste_type.getValue() != null) {
@@ -254,7 +251,7 @@ public class WasteManagementController implements Initializable {
 
     private void loadNextId() {
         try {
-            String nextId = WasteManagementModel.getNextId();
+            String nextId = wasteManagementBO.getNextWasteId();
             txtWaste_id.setText(nextId);
             txtWaste_id.setEditable(false);
         } catch (Exception e) {
@@ -265,7 +262,9 @@ public class WasteManagementController implements Initializable {
 
     private void loadMillingIds() {
         try {
-            ObservableList<String> millingIds = FXCollections.observableArrayList(millingProcessBO.getNextMillingProcessId());
+            // Corrected: Calling getAllMillingProcessIds from millingProcessBO
+            List<String> millingIdsList = millingProcessBO.getAllMillingProcessIds();
+            ObservableList<String> millingIds = FXCollections.observableArrayList(millingIdsList);
             cmbMilling_id.setItems(millingIds);
         } catch (Exception e) {
             e.printStackTrace();
@@ -278,7 +277,6 @@ public class WasteManagementController implements Initializable {
                 "Husk", "Bran", "Broken Rice", "Stones", "Dust", "Other"
         );
         cmbWaste_type.setItems(wasteTypes);
-        cmbWaste_type.setEditable(true);
     }
 
     private void loadDisposalMethods() {
@@ -286,14 +284,12 @@ public class WasteManagementController implements Initializable {
                 "Landfill", "Recycling", "Composting", "Incineration", "Other"
         );
         cmbDisposal_method.setItems(disposalMethods);
-        cmbDisposal_method.setEditable(true);
     }
 
     private void setLocalCurrentDate() {
         txtrecorded_date.setText(LocalDate.now().toString());
         txtrecorded_date.setEditable(false);
     }
-
 
     private void fetchQuantityForWasteType() {
         String millingId = cmbMilling_id.getValue();
@@ -327,18 +323,20 @@ public class WasteManagementController implements Initializable {
                         quantity = BigDecimal.valueOf(0.0);
                         break;
                 }
-                txtQuantity.setText(String.valueOf((BigDecimal) quantity));
+                txtQuantity.setText(String.valueOf(quantity.intValue()));
             } else {
                 txtQuantity.clear();
                 new Alert(Alert.AlertType.WARNING, "Milling process details not found for selected Milling ID.").show();
             }
+        } catch (NotFoundException e) {
+            new Alert(Alert.AlertType.WARNING, e.getMessage()).show();
+            txtQuantity.clear();
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error fetching quantity: " + e.getMessage()).show();
             txtQuantity.clear();
         }
     }
-
 
     private void setCellValueFactory() {
         colWaste_id.setCellValueFactory(new PropertyValueFactory<>("wasteId"));
@@ -351,15 +349,9 @@ public class WasteManagementController implements Initializable {
 
     private void loadTable() {
         try {
-            ArrayList<WasteManagementdto> wasteManagementdtos = WasteManagementModel.viewAllWasteManagement();
-            if (wasteManagementdtos != null) {
-                ObservableList<WasteManagementdto> observableList = FXCollections.observableArrayList(wasteManagementdtos);
-                table.setItems(observableList);
-            } else {
-
-
-                table.setItems(FXCollections.observableArrayList());
-            }
+            List<WasteManagementdto> wasteManagementdtos = wasteManagementBO.getAllWasteManagement();
+            ObservableList<WasteManagementdto> observableList = FXCollections.observableArrayList(wasteManagementdtos);
+            table.setItems(observableList);
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Error loading waste management data: " + e.getMessage()).show();
@@ -373,7 +365,6 @@ public class WasteManagementController implements Initializable {
         cmbDisposal_method.getSelectionModel().clearSelection();
         txtQuantity.clear();
         setLocalCurrentDate();
-        loadTable();
     }
 
     public void tableColumnOnClicked(MouseEvent mouseEvent) {
@@ -384,7 +375,13 @@ public class WasteManagementController implements Initializable {
             cmbWaste_type.setValue(wasteManagementdto.getWasteType());
             cmbDisposal_method.setValue(wasteManagementdto.getDisposalMethod());
             txtQuantity.setText(String.valueOf(wasteManagementdto.getQuantity()));
-            txtrecorded_date.setText(String.valueOf(wasteManagementdto.getRecordDate()));
+
+            if (wasteManagementdto.getRecordDate() != null) {
+                LocalDate date = wasteManagementdto.getRecordDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                txtrecorded_date.setText(date.toString());
+            } else {
+                txtrecorded_date.clear();
+            }
             txtWaste_id.setEditable(false);
         }
     }

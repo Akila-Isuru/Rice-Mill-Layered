@@ -66,8 +66,7 @@ public class EmployeeBOImpl implements EmployeeBO {
         try {
             return employeeDAO.delete(id);
         } catch (SQLException e) {
-            // Check for foreign key constraint violation (example for MySQL/MariaDB)
-            if (e.getSQLState().startsWith("23")) { // SQLState for integrity constraint violation
+            if (e.getSQLState().startsWith("23")) {
                 throw new InUseException("Cannot delete employee with ID " + id + "; it is linked to other records (e.g., salaries, attendance).");
             }
             throw new Exception("Error deleting employee: " + e.getMessage(), e);
@@ -87,5 +86,16 @@ public class EmployeeBOImpl implements EmployeeBO {
     @Override
     public int getEmployeeCount() throws Exception {
         return employeeDAO.getEmployeeCount();
+    }
+
+    // NEW: Implementation of searchEmployee method
+    @Override
+    public Employeedto searchEmployee(String employeeId) throws SQLException, NotFoundException {
+        Optional<Employee> employeeOptional = employeeDAO.findById(employeeId);
+        if (employeeOptional.isPresent()) {
+            return converter.getEmployeedto(employeeOptional.get());
+        } else {
+            throw new NotFoundException("Employee with ID " + employeeId + " not found.");
+        }
     }
 }

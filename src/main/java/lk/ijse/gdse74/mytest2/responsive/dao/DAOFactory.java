@@ -28,6 +28,8 @@ public class DAOFactory {
             case SALES_ORDER -> new SalesOrderDAOImpl();
             case SALES_ORDER_DETAILS -> new SalesOrderDetailsDAOImpl();
             case REPORTS -> new ReportsDAOImpl();
+            case ATTENDANCE -> new AttendanceDAOImpl();
+            case WASTE_MANAGEMENT -> new WasteManagementDAOImpl();
         };
     }
 }

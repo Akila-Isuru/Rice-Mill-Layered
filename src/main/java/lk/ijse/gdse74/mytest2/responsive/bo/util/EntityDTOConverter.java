@@ -118,31 +118,32 @@ public class EntityDTOConverter {
         );
     }
 
-    public MillingProcessdto getMillingProcessdto(MillingProcess millingProcess) {
+    public MillingProcessdto getMillingProcessDto(MillingProcess entity) {
         return new MillingProcessdto(
-                millingProcess.getMillingId(),
-                millingProcess.getPaddyId(),
-                millingProcess.getStartTime() != null ? millingProcess.getStartTime().toLocalTime() : null,
-                millingProcess.getEndTime() != null ? millingProcess.getEndTime().toLocalTime() : null,
-                millingProcess.getMilledQuantity(),
-                millingProcess.getBrokenRice(),
-                millingProcess.getHuskKg(),
-                millingProcess.getBranKg()
+                entity.getMillingId(),
+                entity.getPaddyId(),
+                entity.getStartTime() != null ? entity.getStartTime().toLocalTime() : null,
+                entity.getEndTime() != null ? entity.getEndTime().toLocalTime() : null,
+                entity.getMilledQuantity(),
+                entity.getBrokenRice(),
+                entity.getHuskKg(),
+                entity.getBranKg()
         );
     }
 
-    public MillingProcess getMillingProcess(MillingProcessdto millingProcessdto) {
+    public MillingProcess getMillingProcess(MillingProcessdto dto) {
         return new MillingProcess(
-                millingProcessdto.getMillingId(),
-                millingProcessdto.getPaddyId(),
-                millingProcessdto.getStartTime() != null ? Time.valueOf(millingProcessdto.getStartTime()) : null,
-                millingProcessdto.getEndTime() != null ? Time.valueOf(millingProcessdto.getEndTime()) : null,
-                millingProcessdto.getMilledQuantity(),
-                millingProcessdto.getBrokenRice(),
-                millingProcessdto.getHusk(),
-                millingProcessdto.getBran()
+                dto.getMillingId(),
+                dto.getPaddyId(),
+                dto.getStartTime() != null ? Time.valueOf(dto.getStartTime()) : null,
+                dto.getEndTime() != null ? Time.valueOf(dto.getEndTime()) : null,
+                dto.getMilledQuantity(),
+                dto.getBrokenRice(),
+                dto.getHusk(),
+                dto.getBran()
         );
     }
+
 
     public Usersdto getUsersdto(User user) {
         return new Usersdto(
@@ -327,5 +328,61 @@ public class EntityDTOConverter {
         return reportsdtoList.stream()
                 .map(this::getReportsEntity)
                 .collect(Collectors.toList());
+    }
+    public AttendanceDto getAttendanceDto(Attendance attendance) {
+        return new AttendanceDto(
+                attendance.getAttendanceId(),
+                attendance.getEmployeeId(),
+                attendance.getDate(),
+                attendance.getStatus(),
+                attendance.getInTime(),
+                attendance.getOutTime(),
+                attendance.getHoursWorked()
+        );
+    }
+
+    public Attendance getAttendance(AttendanceDto dto) {
+        return new Attendance(
+                dto.getAttendanceId(),
+                dto.getEmployeeId(),
+                dto.getDate(),
+                dto.getStatus(),
+                dto.getInTime(),
+                dto.getOutTime(),
+                dto.getHoursWorked()
+        );
+    }
+
+    public List<AttendanceDto> toAttendanceDtoList(List<Attendance> attendanceList) {
+        return attendanceList.stream()
+                .map(this::getAttendanceDto)
+                .collect(Collectors.toList());
+    }
+
+    public List<Attendance> toAttendanceList(List<AttendanceDto> dtoList) {
+        return dtoList.stream()
+                .map(this::getAttendance)
+                .collect(Collectors.toList());
+    }
+    public WasteManagementdto getWasteManagementDto(WasteManagement entity) {
+        return new WasteManagementdto(
+                entity.getWasteId(),
+                entity.getMillingId(),
+                entity.getWasteType(),
+                entity.getQuantity(),
+                entity.getDisposalMethod(),
+                entity.getRecordDate()
+        );
+    }
+
+    public WasteManagement getWasteManagement(WasteManagementdto dto) {
+        return new WasteManagement(
+                dto.getWasteId(),
+                dto.getMillingId(),
+                dto.getWasteType(),
+                dto.getQuantity(),
+                dto.getDisposalMethod(),
+                dto.getRecordDate()
+        );
     }
 }

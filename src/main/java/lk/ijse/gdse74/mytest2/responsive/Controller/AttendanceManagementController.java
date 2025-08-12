@@ -8,11 +8,11 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.AnchorPane;
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory; // BOFactory import කරනවා
+import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.AttendanceBO; // AttendanceBO import කරනවා
 import lk.ijse.gdse74.mytest2.responsive.dto.AttendanceDto;
 import lk.ijse.gdse74.mytest2.responsive.dto.Employeedto;
-import lk.ijse.gdse74.mytest2.responsive.model.AttendanceModel;
-import lk.ijse.gdse74.mytest2.responsive.model.EmployeeModel;
-//import lk.ijse.gdse74.mytest2.responsive.model.EmployeeModel;
 
 import java.math.BigDecimal;
 import java.net.URL;
@@ -22,7 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
+import java.util.List; // ArrayList වෙනුවට List පාවිච්චි කරනවා
 import java.util.ResourceBundle;
 
 public class AttendanceManagementController implements Initializable {
@@ -46,8 +46,7 @@ public class AttendanceManagementController implements Initializable {
     @FXML private DatePicker dpSalaryMonth;
     @FXML private Label lblCalculatedSalary;
 
-    private AttendanceModel attendanceModel = new AttendanceModel();
-    private EmployeeModel employeeModel = new EmployeeModel();
+    private AttendanceBO attendanceBO = BOFactory.getInstance().getBO(BOTypes.ATTENDANCE);
     private ObservableList<AttendanceDto> attendanceMasterData = FXCollections.observableArrayList();
 
     private final String timePattern = "^([01]?[0-9]|2[0-3]):([0-5]?[0-9])$";
@@ -61,7 +60,6 @@ public class AttendanceManagementController implements Initializable {
         setupTableSelectionListener();
         setupSalaryEmployeeIds();
 
-
         cmbEmployeeId.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && dpDate.getValue() != null) {
                 try {
@@ -71,13 +69,12 @@ public class AttendanceManagementController implements Initializable {
                     } else {
                         clearAttendanceFieldsWithoutId();
                     }
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     showAlert("Error checking existing attendance: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
         });
-
 
         dpDate.valueProperty().addListener((obs, oldVal, newVal) -> {
             if (newVal != null && cmbEmployeeId.getValue() != null) {
@@ -88,7 +85,7 @@ public class AttendanceManagementController implements Initializable {
                     } else {
                         clearAttendanceFieldsWithoutId();
                     }
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     showAlert("Error checking existing attendance: " + e.getMessage());
                     e.printStackTrace();
                 }
@@ -98,14 +95,14 @@ public class AttendanceManagementController implements Initializable {
 
     private void populateEmployeeIds() {
         try {
-            ArrayList<Employeedto> employees = employeeModel.viewAllEmployees();
+            List<Employeedto> employees = attendanceBO.getAllEmployees(); // BO layer එකෙන් employee data ගන්නවා
             ObservableList<String> employeeIds = FXCollections.observableArrayList();
             for (Employeedto emp : employees) {
                 employeeIds.add(emp.getEmployeeId());
             }
             cmbEmployeeId.setItems(employeeIds);
             cmbEmployeeId.getSelectionModel().selectFirst();
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             showAlert("Failed to load employee IDs: " + e.getMessage());
             e.printStackTrace();
         }
@@ -128,11 +125,11 @@ public class AttendanceManagementController implements Initializable {
 
     private void loadAttendanceTable() {
         try {
-            ArrayList<AttendanceDto> attendanceList = attendanceModel.getAllAttendance();
+            List<AttendanceDto> attendanceList = attendanceBO.getAllAttendance(); // BO layer එකෙන් all attendance ගන්නවා
             attendanceMasterData.setAll(attendanceList);
             tblAttendance.setItems(attendanceMasterData);
             updateAttendanceCount();
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             showAlert("Failed to load attendance records: " + e.getMessage());
             e.printStackTrace();
         }
@@ -172,21 +169,23 @@ public class AttendanceManagementController implements Initializable {
 
     private void setupSalaryEmployeeIds() {
         try {
-            ArrayList<Employeedto> employees = employeeModel.viewAllEmployees();
+            List<Employeedto> employees = attendanceBO.getAllEmployees(); // BO layer එකෙන් employee data ගන්නවා
             ObservableList<String> employeeIds = FXCollections.observableArrayList();
             for (Employeedto emp : employees) {
                 employeeIds.add(emp.getEmployeeId());
             }
             cmbSalaryEmployeeId.setItems(employeeIds);
             cmbSalaryEmployeeId.getSelectionModel().selectFirst();
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             showAlert("Failed to load employee IDs for salary calculation: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-    private AttendanceDto getAttendanceForEmployeeAndDate(String empId, LocalDate date) throws SQLException {
-        ArrayList<AttendanceDto> records = attendanceModel.getAttendanceByEmployeeIdAndMonth(empId, date, date);
+    private AttendanceDto getAttendanceForEmployeeAndDate(String empId, LocalDate date) throws SQLException, ClassNotFoundException {
+        // This method needs to be efficient. Currently, it fetches all monthly attendance then filters.
+        // A direct DAO call for single attendance record would be better if available.
+        List<AttendanceDto> records = attendanceBO.getAttendanceByEmployeeIdAndMonth(empId, date.withDayOfMonth(1), date.withDayOfMonth(date.lengthOfMonth()));
         return records.stream()
                 .filter(a -> a.getEmployeeId().equals(empId) && a.getDate().equals(date))
                 .findFirst()
@@ -243,16 +242,16 @@ public class AttendanceManagementController implements Initializable {
                 attendanceId = existingAttendance.getAttendanceId();
                 isUpdate = true;
             } else {
-                attendanceId = attendanceModel.getNextAttendanceId();
+                attendanceId = attendanceBO.getNextAttendanceId(); // BO layer එකෙන් next ID ගන්නවා
             }
 
             AttendanceDto attendanceDto = new AttendanceDto(attendanceId, empId, date, status, inTime, outTime, hoursWorked);
 
             boolean success;
             if (isUpdate) {
-                success = attendanceModel.updateAttendance(attendanceDto);
+                success = attendanceBO.updateAttendance(attendanceDto); // BO layer එකෙන් update කරනවා
             } else {
-                success = attendanceModel.saveAttendance(attendanceDto);
+                success = attendanceBO.saveAttendance(attendanceDto); // BO layer එකෙන් save කරනවා
             }
 
             if (success) {
@@ -262,7 +261,7 @@ public class AttendanceManagementController implements Initializable {
                 showAlert("Failed to " + (isUpdate ? "update" : "add") + " attendance.");
             }
 
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             showAlert("Database error: " + e.getMessage());
         }
@@ -289,10 +288,7 @@ public class AttendanceManagementController implements Initializable {
         }
 
         try {
-            Employeedto employee = employeeModel.viewAllEmployees().stream()
-                    .filter(e -> e.getEmployeeId().equals(empId))
-                    .findFirst()
-                    .orElse(null);
+            Employeedto employee = attendanceBO.getEmployeeById(empId); // BO layer එකෙන් employee data ගන්නවා
 
             if (employee == null) {
                 showAlert("Employee not found.");
@@ -310,7 +306,7 @@ public class AttendanceManagementController implements Initializable {
             LocalDate monthStart = yearMonth.atDay(1);
             LocalDate monthEnd = yearMonth.atEndOfMonth();
 
-            ArrayList<AttendanceDto> monthlyAttendance = attendanceModel.getAttendanceByEmployeeIdAndMonth(empId, monthStart, monthEnd);
+            List<AttendanceDto> monthlyAttendance = attendanceBO.getAttendanceByEmployeeIdAndMonth(empId, monthStart, monthEnd); // BO layer එකෙන් monthly attendance ගන්නවා
 
             double totalHoursWorked = 0.0;
             int presentDays = 0;
@@ -358,7 +354,7 @@ public class AttendanceManagementController implements Initializable {
                     "  Half Days: " + halfDays + "\n" +
                     "  Calculated Salary: LKR " + String.format("%,.2f", calculatedSalary));
 
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
             showAlert("Database error during salary calculation: " + e.getMessage());
         } catch (Exception e) {

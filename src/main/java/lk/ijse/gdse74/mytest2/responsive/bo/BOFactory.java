@@ -27,6 +27,8 @@ public class BOFactory {
             case MACHINE_MAINTENANCE -> (T) new MachineMaintenanceBOImpl();
             case SALES_ORDER -> (T) new SalesOrderBOImpl();
             case REPORTS -> (T) new ReportsBOImpl();
+            case ATTENDANCE -> (T) new AttendanceBOImpl();
+            case WASTE_MANAGEMENT -> (T) new WasteManagementBOImpl();
         };
     }
 }

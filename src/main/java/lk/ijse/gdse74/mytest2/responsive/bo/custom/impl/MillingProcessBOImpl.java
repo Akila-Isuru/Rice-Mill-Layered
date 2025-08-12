@@ -15,6 +15,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors; // Added for stream usage
 
 public class MillingProcessBOImpl implements MillingProcessBO {
 
@@ -24,11 +25,10 @@ public class MillingProcessBOImpl implements MillingProcessBO {
     @Override
     public List<MillingProcessdto> getAllMillingProcesses() throws SQLException {
         List<MillingProcess> processes = millingProcessDAO.getAll();
-        List<MillingProcessdto> dtos = new ArrayList<>();
-        for (MillingProcess process : processes) {
-            dtos.add(converter.getMillingProcessdto(process));
-        }
-        return dtos;
+        // Using stream for cleaner conversion
+        return processes.stream()
+                .map(converter::getMillingProcessDto) // Corrected method name (was getMillingProcessdto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -52,7 +52,7 @@ public class MillingProcessBOImpl implements MillingProcessBO {
     }
 
     @Override
-    public void updateMillingProcess(MillingProcessdto dto) throws SQLException {
+    public void updateMillingProcess(MillingProcessdto dto) throws SQLException, NotFoundException { // Added NotFoundException
         // Business Rule: Check if the milling process exists
         Optional<MillingProcess> optionalProcess = millingProcessDAO.findById(dto.getMillingId());
         if (optionalProcess.isEmpty()) {
@@ -73,25 +73,21 @@ public class MillingProcessBOImpl implements MillingProcessBO {
     }
 
     @Override
-    public boolean deleteMillingProcess(String id) throws InUseException, SQLException {
+    public boolean deleteMillingProcess(String id) throws InUseException, SQLException, NotFoundException { // Added NotFoundException
         // Business Rule: Check if the milling process exists before attempting to delete
         Optional<MillingProcess> optionalProcess = millingProcessDAO.findById(id);
         if (optionalProcess.isEmpty()) {
             throw new NotFoundException("Milling Process not found with ID: " + id);
         }
 
-        // Add any other business rules here if a milling process cannot be deleted under certain conditions
-        // e.g., if it's linked to a completed order, etc. (Currently none specified, so directly deleting)
-
         try {
             return millingProcessDAO.delete(id);
         } catch (SQLException e) {
             // Re-throw as InUseException if a foreign key constraint prevents deletion
-            // This requires checking the SQLState or error message for specific FK violations
-            if (e.getMessage().contains("Cannot delete or update a parent row: a foreign key constraint fails")) { // Example check
+            if (e.getMessage().contains("Cannot delete or update a parent row: a foreign key constraint fails")) {
                 throw new InUseException("Milling Process ID: " + id + " is in use and cannot be deleted.");
             }
-            throw new SQLException("Error deleting milling process: " + e.getMessage(), e); // Re-throw generic SQL error
+            throw new SQLException("Error deleting milling process: " + e.getMessage(), e);
         }
     }
 
@@ -104,9 +100,20 @@ public class MillingProcessBOImpl implements MillingProcessBO {
     public boolean checkPaddyIdExistsInProcess(String paddyId) throws SQLException {
         return millingProcessDAO.existsMillingProcessByPaddyId(paddyId);
     }
+
     @Override
-    public MillingProcessdto getMillingProcessByMillingId(String millingId) throws SQLException, ClassNotFoundException {
+    public MillingProcessdto getMillingProcessByMillingId(String millingId) throws SQLException, ClassNotFoundException, NotFoundException { // Added NotFoundException
         Optional<MillingProcess> optionalProcess = millingProcessDAO.findById(millingId);
-        return optionalProcess.map(converter::getMillingProcessdto).orElse(null);
+        if (optionalProcess.isPresent()) {
+            return converter.getMillingProcessDto(optionalProcess.get()); // Corrected method name
+        } else {
+            throw new NotFoundException("Milling Process with ID " + millingId + " not found.");
+        }
+    }
+
+    @Override
+    public List<String> getAllMillingProcessIds() throws SQLException, ClassNotFoundException {
+        // Delegate to DAO to get all IDs
+        return millingProcessDAO.getAllIds();
     }
 }
