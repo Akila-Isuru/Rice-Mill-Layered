@@ -8,13 +8,13 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.MouseEvent;
-import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory; // BOFactory import කරනවා
+import lk.ijse.gdse74.mytest2.responsive.bo.BOFactory;
 import lk.ijse.gdse74.mytest2.responsive.bo.BOTypes;
-import lk.ijse.gdse74.mytest2.responsive.bo.custom.ReportsBO; // ReportsBO interface එක import කරනවා
+import lk.ijse.gdse74.mytest2.responsive.bo.custom.ReportsBO;
 import lk.ijse.gdse74.mytest2.responsive.dto.Reportsdto;
 
 import java.net.URL;
-import java.util.List; // ArrayList වෙනුවට List පාවිච්චි කරනවා
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class RepotsController implements Initializable {
@@ -105,7 +105,7 @@ public class RepotsController implements Initializable {
     void btnUpdateOnAction(ActionEvent event) {
         Reportsdto reportsdto = new Reportsdto(txtReport_id.getText(), txtReport_Type.getText(), txtGenerated_date.getText());
         try {
-            boolean isUpdated = reportsBO.updateReport(reportsdto); // BO layer එකෙන් update කරනවා
+            boolean isUpdated = reportsBO.updateReport(reportsdto);
             if (isUpdated) {
                 clearFields();
                 new Alert(Alert.AlertType.INFORMATION, "Report update successfully").show();
@@ -128,12 +128,12 @@ public class RepotsController implements Initializable {
         colReport_type.setCellValueFactory(new PropertyValueFactory<>("reportType"));
         colOrderdate.setCellValueFactory(new PropertyValueFactory<>("reportDate"));
         try {
-            List<Reportsdto> reportsdtos = reportsBO.getAllReports(); // BO layer එකෙන් all reports ගන්නවා
+            List<Reportsdto> reportsdtos = reportsBO.getAllReports();
             if (reportsdtos != null) {
                 ObservableList<Reportsdto> reportsdtoObservableList = FXCollections.observableArrayList(reportsdtos);
                 table.setItems(reportsdtoObservableList);
             } else {
-                new Alert(Alert.AlertType.ERROR, "Failed to load reports").show(); // Error alert එකක් දැම්මා
+                new Alert(Alert.AlertType.ERROR, "Failed to load reports").show();
             }
         } catch (Exception e) {
             e.printStackTrace();

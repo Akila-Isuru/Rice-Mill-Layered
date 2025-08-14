@@ -18,7 +18,6 @@ public class WasteManagementDAOImpl implements WasteManagementDAO {
         ResultSet rs = SQLUtill.execute("SELECT * FROM waste_management");
         List<WasteManagement> wasteManagementList = new ArrayList<>();
         while (rs.next()) {
-            // Retrieve as java.sql.Date and convert to java.util.Date
             java.sql.Date sqlDate = rs.getDate("recorded_date");
             Date utilDate = (sqlDate != null) ? new Date(sqlDate.getTime()) : null;
 
@@ -52,7 +51,6 @@ public class WasteManagementDAOImpl implements WasteManagementDAO {
 
     @Override
     public boolean save(WasteManagement entity) throws SQLException{
-        // Convert java.util.Date to java.sql.Date for database insertion
         java.sql.Date sqlDate = (entity.getRecordDate() != null) ? new java.sql.Date(entity.getRecordDate().getTime()) : null;
 
         return SQLUtill.execute(
@@ -62,13 +60,12 @@ public class WasteManagementDAOImpl implements WasteManagementDAO {
                 entity.getWasteType(),
                 entity.getQuantity(),
                 entity.getDisposalMethod(),
-                sqlDate // Use java.sql.Date for prepared statement
+                sqlDate
         );
     }
 
     @Override
     public boolean update(WasteManagement entity) throws SQLException {
-        // Convert java.util.Date to java.sql.Date for database update
         java.sql.Date sqlDate = (entity.getRecordDate() != null) ? new java.sql.Date(entity.getRecordDate().getTime()) : null;
 
         return SQLUtill.execute(
@@ -77,7 +74,7 @@ public class WasteManagementDAOImpl implements WasteManagementDAO {
                 entity.getWasteType(),
                 entity.getQuantity(),
                 entity.getDisposalMethod(),
-                sqlDate, // Use java.sql.Date for prepared statement
+                sqlDate,
                 entity.getWasteId()
         );
     }
@@ -92,7 +89,6 @@ public class WasteManagementDAOImpl implements WasteManagementDAO {
     public Optional<WasteManagement> findById(String id) throws SQLException{
         ResultSet rs = SQLUtill.execute("SELECT * FROM waste_management WHERE waste_id = ?", id);
         if (rs.next()) {
-            // Retrieve as java.sql.Date and convert to java.util.Date
             java.sql.Date sqlDate = rs.getDate("recorded_date");
             Date utilDate = (sqlDate != null) ? new Date(sqlDate.getTime()) : null;
 

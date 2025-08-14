@@ -50,13 +50,12 @@ public class EmployeeController implements Initializable {
     @FXML private TextField txtSearch;
     @FXML private Label lblEmployeeCount;
 
-    // Validation patterns
     private final String namePattern = "^[A-Za-z ]+$";
-    private final String phonePattern = "^0\\d{9}$"; // Matches 0xxxxxxxxx (10 digits starting with 0)
-    private final String salaryPattern = "^\\d+(\\.\\d{1,2})?$"; // Allows positive numbers with up to 2 decimal places
+    private final String phonePattern = "^0\\d{9}$";
+    private final String salaryPattern = "^\\d+(\\.\\d{1,2})?$";
 
     private ObservableList<Employeedto> employeeMasterData = FXCollections.observableArrayList();
-    private final EmployeeBO employeeBO = BOFactory.getInstance().getBO(BOTypes.EMPLOYEE); // Use BOFactory
+    private final EmployeeBO employeeBO = BOFactory.getInstance().getBO(BOTypes.EMPLOYEE);
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
@@ -65,8 +64,7 @@ public class EmployeeController implements Initializable {
             loadNextId();
             loadTable();
             setupSearchFilter();
-            setupFieldListeners(); // New method for real-time validation and button state
-            //updateButtonStates(); // Set initial button states
+            setupFieldListeners();
         } catch (SQLException e) {
             new Alert(Alert.AlertType.ERROR, "Initialization Error: " + e.getMessage()).show();
             throw new RuntimeException("Failed to initialize EmployeeController", e);
@@ -111,8 +109,7 @@ public class EmployeeController implements Initializable {
         lblEmployeeCount.setText("Employees: " + tblEmployees.getItems().size());
     }
 
-    // Removed the old disableButtons(boolean disable) method.
-    // It's replaced by the more granular updateButtonStates().
+
 
     private void loadTable() throws SQLException {
         try {
@@ -127,7 +124,6 @@ public class EmployeeController implements Initializable {
         }
     }
 
-    // New method to set up listeners for all input fields to update button states and styling
     private void setupFieldListeners() {
         txtName.textProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
         txtAddress.textProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
@@ -137,20 +133,19 @@ public class EmployeeController implements Initializable {
         tblEmployees.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> updateButtonStatesAndStyles());
     }
 
-    // Central method to control button states and apply styling
     private void updateButtonStatesAndStyles() {
-        boolean isValidInputForSaveOrUpdate = validateInputFields(false); // Validate without showing alerts yet
+        boolean isValidInputForSaveOrUpdate = validateInputFields(false);
 
         Employeedto selectedEmployee = tblEmployees.getSelectionModel().getSelectedItem();
 
-        if (selectedEmployee == null) { // No item selected in table (implies new entry)
-            btnSave.setDisable(!isValidInputForSaveOrUpdate); // Enable Save if valid
-            btnUpdate.setDisable(true); // Disable Update
-            btnDelete.setDisable(true); // Disable Delete
-        } else { // An item is selected in the table (implies update or delete)
-            btnSave.setDisable(true); // Disable Save
-            btnUpdate.setDisable(!isValidInputForSaveOrUpdate); // Enable Update if valid
-            btnDelete.setDisable(false); // Enable Delete
+        if (selectedEmployee == null) {
+            btnSave.setDisable(!isValidInputForSaveOrUpdate);
+            btnUpdate.setDisable(true);
+            btnDelete.setDisable(true);
+        } else {
+            btnSave.setDisable(true);
+            btnUpdate.setDisable(!isValidInputForSaveOrUpdate);
+            btnDelete.setDisable(false);
         }
 
         applyValidationStyles();
@@ -188,13 +183,11 @@ public class EmployeeController implements Initializable {
         return true;
     }
 
-    // Applies validation styles without showing alerts, for real-time feedback
     private void applyValidationStyles() {
         txtName.setStyle(txtName.getText().trim().matches(namePattern) ? "-fx-border-color: blue" : "-fx-border-color: red");
         txtContactNumber.setStyle(txtContactNumber.getText().trim().matches(phonePattern) ? "-fx-border-color: blue" : "-fx-border-color: red");
         txtBasicSalary.setStyle(txtBasicSalary.getText().trim().matches(salaryPattern) ? "-fx-border-color: blue" : "-fx-border-color: red");
 
-        // Clear red border if field becomes empty (but required fields will still prevent save/update)
         if (txtName.getText().trim().isEmpty()) txtName.setStyle("");
         if (txtContactNumber.getText().trim().isEmpty()) txtContactNumber.setStyle("");
         if (txtBasicSalary.getText().trim().isEmpty()) txtBasicSalary.setStyle("");
@@ -202,7 +195,7 @@ public class EmployeeController implements Initializable {
 
 
     public void btnSaveOnAction(ActionEvent actionEvent) {
-        if (!validateInputFields(true)) { // Show alerts for invalid input
+        if (!validateInputFields(true)) {
             return;
         }
 
@@ -216,12 +209,12 @@ public class EmployeeController implements Initializable {
                     txtJobRole.getText().trim(),
                     basicSalary
             );
-            employeeBO.saveEmployee(employeedto); // Use BO
+            employeeBO.saveEmployee(employeedto);
             new Alert(Alert.AlertType.INFORMATION, "Employee saved successfully").show();
             clearFields();
-            loadTable(); // Reload table after save
-            loadNextId(); // Load next ID after save
-            updateButtonStatesAndStyles(); // Re-evaluate button states
+            loadTable();
+            loadNextId();
+            updateButtonStatesAndStyles();
         } catch (DuplicateException e) {
             new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
         } catch (Exception e) {
@@ -237,24 +230,24 @@ public class EmployeeController implements Initializable {
         txtJobRole.clear();
         txtBasicSalary.clear();
         loadNextId();
-        tblEmployees.getSelectionModel().clearSelection(); // Clear table selection
-        updateButtonStatesAndStyles(); // Reset button states and styles
+        tblEmployees.getSelectionModel().clearSelection();
+        updateButtonStatesAndStyles();
     }
 
     private void loadNextId() throws SQLException {
         try {
-            String nextId = employeeBO.getNextId(); // Use BO
+            String nextId = employeeBO.getNextId();
             txtEmployeeId.setText(nextId);
             txtEmployeeId.setEditable(false);
         } catch (SQLException e) {
             new Alert(Alert.AlertType.ERROR, "Error loading next ID: " + e.getMessage()).show();
-            txtEmployeeId.setText("E001"); // Fallback
+            txtEmployeeId.setText("E001");
             txtEmployeeId.setEditable(false);
         }
     }
 
     public void btnUpdateOnAction(ActionEvent actionEvent) {
-        if (!validateInputFields(true)) { // Show alerts for invalid input
+        if (!validateInputFields(true)) {
             return;
         }
 
@@ -275,12 +268,12 @@ public class EmployeeController implements Initializable {
                         txtJobRole.getText().trim(),
                         basicSalary
                 );
-                employeeBO.updateEmployee(employeedto); // Use BO
+                employeeBO.updateEmployee(employeedto);
                 new Alert(Alert.AlertType.INFORMATION, "Employee updated successfully").show();
                 clearFields();
                 loadTable();
                 loadNextId();
-                updateButtonStatesAndStyles(); // Re-evaluate button states
+                updateButtonStatesAndStyles();
             } catch (NotFoundException | DuplicateException e) {
                 new Alert(Alert.AlertType.ERROR, e.getMessage()).show();
             } catch (Exception e) {
@@ -300,13 +293,13 @@ public class EmployeeController implements Initializable {
         if (result.isPresent() && result.get() == ButtonType.OK) {
             String id = txtEmployeeId.getText();
             try {
-                boolean isDeleted = employeeBO.deleteEmployee(id); // Use BO
+                boolean isDeleted = employeeBO.deleteEmployee(id);
                 if (isDeleted) {
                     new Alert(Alert.AlertType.INFORMATION,"Employee deleted successfully").show();
                     clearFields();
                     loadTable();
                     loadNextId();
-                    updateButtonStatesAndStyles(); // Re-evaluate button states
+                    updateButtonStatesAndStyles();
                 } else {
                     new Alert(Alert.AlertType.INFORMATION,"Employee delete Failed").show();
                 }
@@ -333,20 +326,18 @@ public class EmployeeController implements Initializable {
             txtContactNumber.setText(employeedto.getContactNumber());
             txtJobRole.setText(employeedto.getJobRole());
             txtBasicSalary.setText(employeedto.getBasicSalary().toPlainString());
-            updateButtonStatesAndStyles(); // Update button states based on selection
+            updateButtonStatesAndStyles();
         }
     }
 
-    // These methods now just call the central updateButtonStatesAndStyles()
     public void txtNameChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); }
     public void txtContactChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); }
     public void txtBasicSalaryChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); }
-    public void txtAddressChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); } // Added for address
-    public void txtJobRoleChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); } // Added for jobRole
+    public void txtAddressChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); }
+    public void txtJobRoleChange(KeyEvent keyEvent) { updateButtonStatesAndStyles(); }
 
     @FXML
     void searchEmployee(KeyEvent event) {
-        // The search logic is handled by setupSearchFilter and its listener
     }
 
     @FXML

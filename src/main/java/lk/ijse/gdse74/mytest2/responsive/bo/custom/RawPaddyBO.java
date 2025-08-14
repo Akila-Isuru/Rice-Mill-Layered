@@ -15,5 +15,5 @@ public interface RawPaddyBO extends SuperBO {
     void updateRawPaddy(RawPaddydto dto) throws NotFoundException, Exception;
     boolean deleteRawPaddy(String id) throws InUseException, NotFoundException, Exception;
     String getNextId() throws SQLException;
-    List<String> getAllRawPaddyIds() throws SQLException; // For dropdowns/lookups
+    List<String> getAllRawPaddyIds() throws SQLException;
 }

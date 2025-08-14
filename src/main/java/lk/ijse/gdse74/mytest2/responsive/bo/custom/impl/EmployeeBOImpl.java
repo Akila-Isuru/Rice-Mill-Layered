@@ -88,7 +88,6 @@ public class EmployeeBOImpl implements EmployeeBO {
         return employeeDAO.getEmployeeCount();
     }
 
-    // NEW: Implementation of searchEmployee method
     @Override
     public Employeedto searchEmployee(String employeeId) throws SQLException, NotFoundException {
         Optional<Employee> employeeOptional = employeeDAO.findById(employeeId);

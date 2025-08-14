@@ -2,7 +2,7 @@ package lk.ijse.gdse74.mytest2.responsive.entity;
 
 import lombok.*;
 
-import java.util.Date; // java.util.Date
+import java.util.Date;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,5 +15,5 @@ public class WasteManagement {
     private String wasteType;
     private int quantity;
     private String disposalMethod;
-    private Date recordDate; // java.util.Date
+    private Date recordDate;
 }

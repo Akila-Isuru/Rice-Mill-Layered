@@ -93,7 +93,6 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public User getUserByUsernameAndPassword(String username, String password) throws SQLException, ClassNotFoundException {
-        // Note: 'name' is used as 'username' in your current setup
         ResultSet rs = SQLUtill.execute("SELECT * FROM users WHERE name = ? AND password = ?", username, password);
         if (rs.next()) {
             return new User(

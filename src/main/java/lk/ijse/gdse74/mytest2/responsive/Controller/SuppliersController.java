@@ -46,7 +46,7 @@ public class SuppliersController implements Initializable {
 
     private final String namePattern = "^[A-Za-z ]+$";
     private final String emailPattern = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
-    private final String phonePattern = "^0\\d{9}$"; // Matches 0xxxxxxxxx (10 digits starting with 0)
+    private final String phonePattern = "^0\\d{9}$";
 
     private ObservableList<Suppliersdto> supplierMasterData = FXCollections.observableArrayList();
     private final SupplierBO supplierBO = BOFactory.getInstance().getBO(BOTypes.SUPPLIER);
@@ -69,7 +69,7 @@ public class SuppliersController implements Initializable {
     private void setCellValueFactories() {
         colid.setCellValueFactory(new PropertyValueFactory<>("supplierId"));
         colname.setCellValueFactory(new PropertyValueFactory<>("name"));
-        colcontatcnumber.setCellValueFactory(new PropertyValueFactory<>("cotactNumber")); // Changed to cotactNumber
+        colcontatcnumber.setCellValueFactory(new PropertyValueFactory<>("cotactNumber"));
         coladdress.setCellValueFactory(new PropertyValueFactory<>("address"));
         colemail.setCellValueFactory(new PropertyValueFactory<>("email"));
     }
@@ -100,7 +100,7 @@ public class SuppliersController implements Initializable {
 
                 return supplier.getSupplierId().toLowerCase().contains(lowerCaseFilter) ||
                         supplier.getName().toLowerCase().contains(lowerCaseFilter) ||
-                        supplier.getCotactNumber().toLowerCase().contains(lowerCaseFilter) || // Changed to getCotactNumber
+                        supplier.getCotactNumber().toLowerCase().contains(lowerCaseFilter) ||
                         supplier.getAddress().toLowerCase().contains(lowerCaseFilter) ||
                         supplier.getEmail().toLowerCase().contains(lowerCaseFilter);
             });
@@ -242,7 +242,7 @@ public class SuppliersController implements Initializable {
             Suppliersdto suppliersdto = new Suppliersdto(
                     txtId.getText(),
                     txtName.getText().trim(),
-                    txtContact_number.getText().trim(), // This UI field maps to cotactNumber in DTO
+                    txtContact_number.getText().trim(),
                     txtaddress.getText().trim(),
                     txtemail.getText().trim()
             );

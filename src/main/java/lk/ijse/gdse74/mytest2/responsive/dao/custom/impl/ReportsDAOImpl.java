@@ -2,7 +2,7 @@ package lk.ijse.gdse74.mytest2.responsive.dao.custom.impl;
 
 import lk.ijse.gdse74.mytest2.responsive.dao.custom.ReportsDAO;
 import lk.ijse.gdse74.mytest2.responsive.entity.ReportsEntity;
-import lk.ijse.gdse74.mytest2.responsive.utill.CrudUtill; // ඔයාගේ CrudUtill එක මෙතනට import වෙනවා
+import lk.ijse.gdse74.mytest2.responsive.utill.CrudUtill;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

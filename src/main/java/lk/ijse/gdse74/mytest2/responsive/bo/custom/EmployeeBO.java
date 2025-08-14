@@ -15,7 +15,7 @@ public interface EmployeeBO extends SuperBO {
     void updateEmployee(Employeedto dto) throws NotFoundException, Exception;
     boolean deleteEmployee(String id) throws InUseException, NotFoundException, Exception;
     String getNextId() throws SQLException;
-    List<String> getAllEmployeeIds() throws SQLException; // For dropdowns/lookups
+    List<String> getAllEmployeeIds() throws SQLException;
     int getEmployeeCount() throws Exception;
-    Employeedto searchEmployee(String employeeId) throws SQLException, NotFoundException; // NEW: Added this method
+    Employeedto searchEmployee(String employeeId) throws SQLException, NotFoundException;
 }

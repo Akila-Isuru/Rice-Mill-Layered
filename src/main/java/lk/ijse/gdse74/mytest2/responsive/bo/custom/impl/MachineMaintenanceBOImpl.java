@@ -66,7 +66,6 @@ public class MachineMaintenanceBOImpl implements MachineMaintenanceBO {
         try {
             return machineMaintenanceDAO.delete(id);
         } catch (SQLException e) {
-            // Check for foreign key constraint violation if maintenance records are linked elsewhere
             if (e.getMessage().contains("Cannot delete or update a parent row: a foreign key constraint fails")) {
                 throw new InUseException("Machine Maintenance ID " + id + " is linked to other records and cannot be deleted.");
             }

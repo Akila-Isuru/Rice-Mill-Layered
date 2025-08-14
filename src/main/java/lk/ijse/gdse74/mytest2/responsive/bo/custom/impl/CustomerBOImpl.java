@@ -33,19 +33,16 @@ public class CustomerBOImpl implements CustomerBO {
 
     @Override
     public void saveCustomer(Customersdto dto) throws DuplicateException, Exception {
-        // Check for duplicate ID
         Optional<Customer> optionalCustomer = customerDAO.findById(dto.getCustomerId());
         if (optionalCustomer.isPresent()) {
             throw new DuplicateException("Duplicate customer id");
         }
 
-        // Check for duplicate contact number
         Optional<Customer> customerByContactOptional = customerDAO.findCustomerByContactNumber(dto.getContactNumber());
         if (customerByContactOptional.isPresent()) {
             throw new DuplicateException("Duplicate customer contact number");
         }
 
-        // Check for duplicate email
         if (customerDAO.existsCustomerByEmail(dto.getEmail())) {
             throw new DuplicateException("Duplicate customer email");
         }
@@ -61,7 +58,6 @@ public class CustomerBOImpl implements CustomerBO {
             throw new NotFoundException("Customer not found");
         }
 
-        // Check for duplicate contact number (excluding current customer)
         Optional<Customer> customerByContactOptional = customerDAO.findCustomerByContactNumber(dto.getContactNumber());
         if (customerByContactOptional.isPresent()) {
             Customer customer = customerByContactOptional.get();
@@ -70,7 +66,6 @@ public class CustomerBOImpl implements CustomerBO {
             }
         }
 
-        // Check for duplicate email (excluding current customer)
         Optional<Customer> customerByEmailOptional = customerDAO.findCustomerByEmail(dto.getEmail());
         if (customerByEmailOptional.isPresent()) {
             Customer customer = customerByEmailOptional.get();

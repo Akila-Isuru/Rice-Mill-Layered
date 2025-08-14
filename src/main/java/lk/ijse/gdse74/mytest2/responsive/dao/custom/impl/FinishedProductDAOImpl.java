@@ -34,7 +34,7 @@ public class FinishedProductDAOImpl implements FinishedProductDAO {
         ResultSet resultSet = SQLUtill.execute("SELECT product_id FROM finished_product ORDER BY product_id DESC LIMIT 1");
         if (resultSet.next()) {
             String lastId = resultSet.getString("product_id");
-            int nextNum = Integer.parseInt(lastId.substring(2)) + 1; // Extract number after "FP"
+            int nextNum = Integer.parseInt(lastId.substring(2)) + 1;
             return String.format("FP%03d", nextNum);
         }
         return "FP001";

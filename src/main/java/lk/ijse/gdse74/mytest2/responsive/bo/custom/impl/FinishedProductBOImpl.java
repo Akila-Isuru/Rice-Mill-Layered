@@ -66,7 +66,6 @@ public class FinishedProductBOImpl implements FinishedProductBO {
         try {
             return finishedProductDAO.delete(id);
         } catch (SQLException e) {
-            // Check for foreign key constraint violation
             if (e.getMessage().contains("Cannot delete or update a parent row: a foreign key constraint fails")) {
                 throw new InUseException("Finished Product ID: " + id + " is in use (e.g., in sales orders) and cannot be deleted.");
             }

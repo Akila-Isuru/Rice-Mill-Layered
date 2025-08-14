@@ -14,12 +14,10 @@ public interface InventoryBO extends SuperBO {
     void updateInventoryItem(Inventorydto dto) throws SQLException;
     boolean deleteInventoryItem(String id) throws InUseException, SQLException;
     String getNextInventoryId() throws SQLException;
-    Inventorydto findInventoryItemById(String id) throws SQLException; // For retrieving a single item
-    List<String> getAllInventoryIds() throws SQLException; // For internal use if needed
+    Inventorydto findInventoryItemById(String id) throws SQLException;
+    List<String> getAllInventoryIds() throws SQLException;
 
-    // Method to get all product IDs for the combo box, potentially from FinishedProductBO
     List<String> getAllFinishedProductIdsForInventory() throws SQLException;
 
-    // Method to get a specific finished product's current stock
     int getFinishedProductCurrentQuantity(String productId) throws SQLException;
 }

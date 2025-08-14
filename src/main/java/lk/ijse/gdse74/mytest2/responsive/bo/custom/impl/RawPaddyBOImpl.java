@@ -66,8 +66,7 @@ public class RawPaddyBOImpl implements RawPaddyBO {
         try {
             return rawPaddyDAO.delete(id);
         } catch (SQLException e) {
-            // Check for foreign key constraint violation (example for MySQL/MariaDB)
-            if (e.getSQLState().startsWith("23")) { // SQLState for integrity constraint violation
+            if (e.getSQLState().startsWith("23")) {
                 throw new InUseException("Cannot delete raw paddy record with ID " + id + "; it is linked to other records (e.g., milling processes).");
             }
             throw new Exception("Error deleting raw paddy record: " + e.getMessage(), e);

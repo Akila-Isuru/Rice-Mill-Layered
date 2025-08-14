@@ -14,7 +14,7 @@ public interface FinishedProductBO extends SuperBO {
     void updateFinishedProduct(FinishedProductdto dto) throws SQLException;
     boolean deleteFinishedProduct(String id) throws InUseException, SQLException;
     String getNextFinishedProductId() throws SQLException;
-    FinishedProductdto findFinishedProductById(String id) throws SQLException; // For retrieving a single product
-    List<String> getAllFinishedProductIds() throws SQLException; // For populating ComboBoxes
-    void reduceFinishedProductQuantity(String productId, int quantityToReduce) throws SQLException; // For sales
+    FinishedProductdto findFinishedProductById(String id) throws SQLException;
+    List<String> getAllFinishedProductIds() throws SQLException;
+    void reduceFinishedProductQuantity(String productId, int quantityToReduce) throws SQLException;
 }

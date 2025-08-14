@@ -8,11 +8,10 @@ import java.sql.Date;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors; // Added for stream usage
+import java.util.stream.Collectors;
 
 public class EntityDTOConverter {
 
-    // ... (Existing conversion methods for Customer, Farmer, Supplier, Employee, RawPaddy, MillingProcess, User, FinishedProduct, Inventory) ...
 
     public Customersdto getCustomerDTO(Customer customer) {
         return new Customersdto(
@@ -188,7 +187,7 @@ public class EntityDTOConverter {
                 finishedProduct.getProductId(),
                 finishedProduct.getMillingId(),
                 finishedProduct.getProductType(),
-                finishedProduct.getPackagingSizeKg().doubleValue(), // Convert BigDecimal to double for DTO
+                finishedProduct.getPackagingSizeKg().doubleValue(),
                 finishedProduct.getTotalQuantityBags(),
                 finishedProduct.getPricePerBag()
         );
@@ -199,7 +198,7 @@ public class EntityDTOConverter {
                 finishedProductdto.getProductId(),
                 finishedProductdto.getMillingId(),
                 finishedProductdto.getProductType(),
-                BigDecimal.valueOf(finishedProductdto.getPackageSize()), // Convert double to BigDecimal for Entity
+                BigDecimal.valueOf(finishedProductdto.getPackageSize()),
                 finishedProductdto.getQuantityBags(),
                 finishedProductdto.getPricePerBag()
         );
@@ -223,7 +222,6 @@ public class EntityDTOConverter {
         );
     }
 
-    // --- NEW: MachineMaintenance Conversions ---
     public MachineMaintenancedto getMachineMaintenancedto(MachineMaintenance machineMaintenance) {
         return new MachineMaintenancedto(
                 machineMaintenance.getMaintenanceId(),
@@ -244,14 +242,13 @@ public class EntityDTOConverter {
         );
     }
 
-    // --- NEW: SalesOrder Conversions ---
     public SalesOrderdto getSalesOrderdto(SalesOrder salesOrder) {
         return new SalesOrderdto(
                 salesOrder.getOrderId(),
                 salesOrder.getCustomerId(),
                 salesOrder.getOrderDate(),
-                salesOrder.getOrderAmount(), // Mapping totalAmount from entity to orderAmount in DTO
-                null // cartList is not stored in SalesOrder entity, needs to be fetched separately if needed
+                salesOrder.getOrderAmount(),
+                null
         );
     }
 
@@ -260,7 +257,7 @@ public class EntityDTOConverter {
                 dto.getOrderId(),
                 dto.getCustomerId(),
                 dto.getOrderDate(),
-                dto.getOrderAmount() // Mapping orderAmount from DTO to totalAmount for entity/DB
+                dto.getOrderAmount()
         );
     }
 
@@ -270,12 +267,11 @@ public class EntityDTOConverter {
                 .collect(Collectors.toList());
     }
 
-    // --- NEW: SalesOrderDetails Conversions ---
     public SalesOrderDetailsdto getSalesOrderDetailsdto(SalesOrderDetails salesOrderDetails) {
         return new SalesOrderDetailsdto(
                 salesOrderDetails.getOrderId(),
                 salesOrderDetails.getProductId(),
-                salesOrderDetails.getQty(), // Correct order based on your DTO constructor
+                salesOrderDetails.getQty(),
                 salesOrderDetails.getUnitPrice(),
                 salesOrderDetails.getTotalPrice()
         );

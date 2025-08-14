@@ -34,10 +34,9 @@ public class SupplierDAOImpl implements SupplierDAO {
         char tableChar = 'S';
         if (resultSet.next()) {
             String lastId = resultSet.getString(1);
-            // Handle cases like "S1", "S01", "S001" for parsing
-            String lastIdNumberString = lastId.replaceAll("[^\\d]", ""); // Extract only digits
+            String lastIdNumberString = lastId.replaceAll("[^\\d]", "");
             if (lastIdNumberString.isEmpty()) {
-                return tableChar + "001"; // Fallback if no numbers found
+                return tableChar + "001";
             }
             int lastIdNumber = Integer.parseInt(lastIdNumberString);
             int nextIdNumber = lastIdNumber + 1;

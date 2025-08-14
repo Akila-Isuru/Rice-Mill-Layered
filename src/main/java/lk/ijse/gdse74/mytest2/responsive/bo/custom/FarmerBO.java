@@ -11,7 +11,7 @@ import java.util.List;
 public interface FarmerBO extends SuperBO {
     List<FarmerDTO> getAllFarmers() throws SQLException;
     void saveFarmer(FarmerDTO dto) throws DuplicateException, Exception;
-    void updateFarmer(FarmerDTO dto) throws SQLException, DuplicateException; // Added DuplicateException for update
+    void updateFarmer(FarmerDTO dto) throws SQLException, DuplicateException;
     boolean deleteFarmer(String id) throws InUseException, Exception;
     String getNextId() throws SQLException;
 

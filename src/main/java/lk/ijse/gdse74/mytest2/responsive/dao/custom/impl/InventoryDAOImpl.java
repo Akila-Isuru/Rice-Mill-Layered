@@ -30,13 +30,13 @@ public class InventoryDAOImpl implements InventoryDAO {
     @Override
     public String getNextId() throws SQLException {
         ResultSet resultSet = SQLUtill.execute("SELECT inventory_id FROM inventory ORDER BY inventory_id DESC LIMIT 1");
-        char tableChar = 'I'; // Character for Inventory IDs
+        char tableChar = 'I';
         if (resultSet.next()) {
-            String lastId = resultSet.getString(1); // "I004"
-            String lastIdNumberString = lastId.substring(1); // "004"
-            int lastIdNumber = Integer.parseInt(lastIdNumberString); // 4
-            int nextIdNumber = lastIdNumber + 1; // 5
-            String nextIdString = String.format(tableChar + "%03d", nextIdNumber); // "I005"
+            String lastId = resultSet.getString(1);
+            String lastIdNumberString = lastId.substring(1);
+            int lastIdNumber = Integer.parseInt(lastIdNumberString);
+            int nextIdNumber = lastIdNumber + 1;
+            String nextIdString = String.format(tableChar + "%03d", nextIdNumber);
             return nextIdString;
         }
         return tableChar + "001";

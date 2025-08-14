@@ -12,8 +12,8 @@ import java.util.List;
 public interface MillingProcessBO extends SuperBO {
     List<MillingProcessdto> getAllMillingProcesses() throws SQLException;
     void saveMillingProcess(MillingProcessdto dto) throws DuplicateException, SQLException;
-    void updateMillingProcess(MillingProcessdto dto) throws SQLException, NotFoundException; // Added NotFoundException
-    boolean deleteMillingProcess(String id) throws InUseException, SQLException, NotFoundException; // Added NotFoundException
+    void updateMillingProcess(MillingProcessdto dto) throws SQLException, NotFoundException;
+    boolean deleteMillingProcess(String id) throws InUseException, SQLException, NotFoundException;
     String getNextMillingProcessId() throws SQLException;
     boolean checkPaddyIdExistsInProcess(String paddyId) throws SQLException;
     MillingProcessdto getMillingProcessByMillingId(String millingId) throws SQLException, ClassNotFoundException, NotFoundException; // Added NotFoundException

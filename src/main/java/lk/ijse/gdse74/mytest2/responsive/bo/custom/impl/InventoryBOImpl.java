@@ -25,7 +25,7 @@ import java.util.Optional;
 public class InventoryBOImpl implements InventoryBO {
 
     private final InventoryDAO inventoryDAO = DAOFactory.getInstance().getDAO(DAOTypes.INVENTORY);
-    private final FinishedProductDAO finishedProductDAO = DAOFactory.getInstance().getDAO(DAOTypes.FINISHED_PRODUCT); // Direct DAO usage here for simplicity to get stock
+    private final FinishedProductDAO finishedProductDAO = DAOFactory.getInstance().getDAO(DAOTypes.FINISHED_PRODUCT);
 
     private final EntityDTOConverter converter = new EntityDTOConverter();
 

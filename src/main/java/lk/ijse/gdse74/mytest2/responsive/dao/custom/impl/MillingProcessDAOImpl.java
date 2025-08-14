@@ -6,7 +6,7 @@ import lk.ijse.gdse74.mytest2.responsive.entity.MillingProcess;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Time; // For java.sql.Time
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,15 +35,15 @@ public class MillingProcessDAOImpl implements MillingProcessDAO {
     @Override
     public String getNextId() throws SQLException {
         ResultSet resultSet = SQLUtill.execute("SELECT milling_id FROM milling_process ORDER BY milling_id DESC LIMIT 1");
-        char tableChar = 'M'; // Assuming 'M' for Milling Process
+        char tableChar = 'M';
         if (resultSet.next()) {
             String lastId = resultSet.getString(1);
-            String lastIdNumberString = lastId.substring(1); // "001"
-            int lastIdNumber = Integer.parseInt(lastIdNumberString); // 1
-            int nextIdNumber = lastIdNumber + 1; // 2
-            return String.format(tableChar + "%03d", nextIdNumber); // "M002"
+            String lastIdNumberString = lastId.substring(1);
+            int lastIdNumber = Integer.parseInt(lastIdNumberString);
+            int nextIdNumber = lastIdNumber + 1;
+            return String.format(tableChar + "%03d", nextIdNumber);
         }
-        return tableChar + "001"; // First ID
+        return tableChar + "001";
     }
 
     @Override

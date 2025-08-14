@@ -34,12 +34,12 @@ public class RawPaddyDAOImpl implements RawPaddyDAO {
     @Override
     public String getNextId() throws SQLException {
         ResultSet rs = SQLUtill.execute("SELECT paddy_id FROM raw_paddy ORDER BY paddy_id DESC LIMIT 1");
-        char tableChar = 'P'; // For Paddy ID
+        char tableChar = 'P';
         if (rs.next()) {
             String lastId = rs.getString(1);
-            String lastIdNumberString = lastId.replaceAll("[^\\d]", ""); // Extract only digits
+            String lastIdNumberString = lastId.replaceAll("[^\\d]", "");
             if (lastIdNumberString.isEmpty()) {
-                return tableChar + "001"; // Fallback if no numbers found
+                return tableChar + "001";
             }
             int lastIdNumber = Integer.parseInt(lastIdNumberString);
             int nextIdNumber = lastIdNumber + 1;

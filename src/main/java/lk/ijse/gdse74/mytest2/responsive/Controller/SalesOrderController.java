@@ -27,15 +27,13 @@ import java.util.ResourceBundle;
 
 public class SalesOrderController implements Initializable {
 
-    // BO instances
     private SalesOrderBO salesOrderBO = BOFactory.getInstance().getBO(BOTypes.SALES_ORDER);
     private CustomerBO customerBO = BOFactory.getInstance().getBO(BOTypes.CUSTOMER);
     private FinishedProductBO finishedProductBO = BOFactory.getInstance().getBO(BOTypes.FINISHED_PRODUCT);
 
-    // UI Components (FXML Injected)
     @FXML private Button btnClear;
     @FXML private Button btnDelete;
-    @FXML private Button btnSave; // This button's logic will be "Place Order" now
+    @FXML private Button btnSave;
     @FXML private Button btnUpdate;
     @FXML private Button btnAddToCart;
     @FXML private Label lblCustomerName;
@@ -147,14 +145,14 @@ public class SalesOrderController implements Initializable {
                 new Alert(Alert.AlertType.WARNING, "Unit price is not valid. Please select an item again.").show();
                 return;
             }
-            int unitPrice = Integer.parseInt(lblUnitPrice.getText().split("\\.")[0]); // Take only integer part if "0.00"
+            int unitPrice = Integer.parseInt(lblUnitPrice.getText().split("\\.")[0]);
             int total = unitPrice * cartQty;
 
 
             int remainingStock = currentItemQtyOnHand;
             for (cartTM existingItemInCart : cartData) {
                 if (existingItemInCart.getProductId().equals(selectedItemId)) {
-                    remainingStock += existingItemInCart.getQty(); // Add back what's already in the cart for this item
+                    remainingStock += existingItemInCart.getQty();
                 }
             }
 

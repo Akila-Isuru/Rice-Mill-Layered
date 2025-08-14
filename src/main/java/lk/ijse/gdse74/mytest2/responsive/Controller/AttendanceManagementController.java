@@ -95,7 +95,7 @@ public class AttendanceManagementController implements Initializable {
 
     private void populateEmployeeIds() {
         try {
-            List<Employeedto> employees = attendanceBO.getAllEmployees(); // BO layer එකෙන් employee data ගන්නවා
+            List<Employeedto> employees = attendanceBO.getAllEmployees();
             ObservableList<String> employeeIds = FXCollections.observableArrayList();
             for (Employeedto emp : employees) {
                 employeeIds.add(emp.getEmployeeId());
@@ -125,7 +125,7 @@ public class AttendanceManagementController implements Initializable {
 
     private void loadAttendanceTable() {
         try {
-            List<AttendanceDto> attendanceList = attendanceBO.getAllAttendance(); // BO layer එකෙන් all attendance ගන්නවා
+            List<AttendanceDto> attendanceList = attendanceBO.getAllAttendance();
             attendanceMasterData.setAll(attendanceList);
             tblAttendance.setItems(attendanceMasterData);
             updateAttendanceCount();
@@ -169,7 +169,7 @@ public class AttendanceManagementController implements Initializable {
 
     private void setupSalaryEmployeeIds() {
         try {
-            List<Employeedto> employees = attendanceBO.getAllEmployees(); // BO layer එකෙන් employee data ගන්නවා
+            List<Employeedto> employees = attendanceBO.getAllEmployees();
             ObservableList<String> employeeIds = FXCollections.observableArrayList();
             for (Employeedto emp : employees) {
                 employeeIds.add(emp.getEmployeeId());
@@ -183,8 +183,7 @@ public class AttendanceManagementController implements Initializable {
     }
 
     private AttendanceDto getAttendanceForEmployeeAndDate(String empId, LocalDate date) throws SQLException, ClassNotFoundException {
-        // This method needs to be efficient. Currently, it fetches all monthly attendance then filters.
-        // A direct DAO call for single attendance record would be better if available.
+
         List<AttendanceDto> records = attendanceBO.getAttendanceByEmployeeIdAndMonth(empId, date.withDayOfMonth(1), date.withDayOfMonth(date.lengthOfMonth()));
         return records.stream()
                 .filter(a -> a.getEmployeeId().equals(empId) && a.getDate().equals(date))
@@ -242,16 +241,16 @@ public class AttendanceManagementController implements Initializable {
                 attendanceId = existingAttendance.getAttendanceId();
                 isUpdate = true;
             } else {
-                attendanceId = attendanceBO.getNextAttendanceId(); // BO layer එකෙන් next ID ගන්නවා
+                attendanceId = attendanceBO.getNextAttendanceId();
             }
 
             AttendanceDto attendanceDto = new AttendanceDto(attendanceId, empId, date, status, inTime, outTime, hoursWorked);
 
             boolean success;
             if (isUpdate) {
-                success = attendanceBO.updateAttendance(attendanceDto); // BO layer එකෙන් update කරනවා
+                success = attendanceBO.updateAttendance(attendanceDto);
             } else {
-                success = attendanceBO.saveAttendance(attendanceDto); // BO layer එකෙන් save කරනවා
+                success = attendanceBO.saveAttendance(attendanceDto);
             }
 
             if (success) {
@@ -288,7 +287,7 @@ public class AttendanceManagementController implements Initializable {
         }
 
         try {
-            Employeedto employee = attendanceBO.getEmployeeById(empId); // BO layer එකෙන් employee data ගන්නවා
+            Employeedto employee = attendanceBO.getEmployeeById(empId);
 
             if (employee == null) {
                 showAlert("Employee not found.");

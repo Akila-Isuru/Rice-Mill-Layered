@@ -32,12 +32,12 @@ public class EmployeeDAOImpl implements EmployeeDAO {
     @Override
     public String getNextId() throws SQLException {
         ResultSet resultSet = SQLUtill.execute("SELECT employee_id FROM employees ORDER BY employee_id DESC LIMIT 1");
-        char tableChar = 'E'; // For Employee ID
+        char tableChar = 'E';
         if (resultSet.next()) {
             String lastId = resultSet.getString(1);
-            String lastIdNumberString = lastId.replaceAll("[^\\d]", ""); // Extract only digits
+            String lastIdNumberString = lastId.replaceAll("[^\\d]", "");
             if (lastIdNumberString.isEmpty()) {
-                return tableChar + "001"; // Fallback if no numbers found
+                return tableChar + "001";
             }
             int lastIdNumber = Integer.parseInt(lastIdNumberString);
             int nextIdNumber = lastIdNumber + 1;

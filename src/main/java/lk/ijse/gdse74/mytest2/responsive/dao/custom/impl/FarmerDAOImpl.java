@@ -32,7 +32,7 @@ public class FarmerDAOImpl implements FarmerDAO {
     @Override
     public String getNextId() throws SQLException {
         ResultSet resultSet = SQLUtill.execute("SELECT farmer_id FROM farmers ORDER BY farmer_id DESC LIMIT 1");
-        char tableChar = 'F'; // 'F' for Farmer
+        char tableChar = 'F';
         if (resultSet.next()) {
             String lastId = resultSet.getString(1);
             String lastIdNumberString = lastId.substring(1);
